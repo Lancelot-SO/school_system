@@ -33,6 +33,30 @@ const notices = [
     date: 'March 14, 2035',
     creator: 'Class Advisor',
     imageUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Trip'
+  },
+  {
+    title: 'Uniform Distribution Announcement',
+    tags: ['Announcement'],
+    audience: 'All Students',
+    date: 'March 15, 2035',
+    creator: 'Admin Office',
+    imageUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Uniform'
+  },
+  {
+    title: 'Spring Break Official Schedule',
+    tags: ['Academic'],
+    audience: 'All Students',
+    date: 'March 20, 2035',
+    creator: 'Registrar',
+    imageUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Spring'
+  },
+  {
+    title: 'Sports Day Gear Collection',
+    tags: ['Event'],
+    audience: 'All Students',
+    date: 'March 18, 2035',
+    creator: 'PE Department',
+    imageUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sports'
   }
 ];
 
