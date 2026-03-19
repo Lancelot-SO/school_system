@@ -32,11 +32,11 @@ const EarningsChart = () => {
 
       <div className="flex items-center gap-6 mb-6 px-1">
         <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 bg-[#1a365d]"></div>
+            <div className="w-3.5 h-0.5 bg-[#1a365d] rounded-full"></div>
             <span className="text-[13px] font-bold text-gray-400">Earnings</span>
         </div>
         <div className="flex items-center gap-2">
-            <div className="w-4 h-0.5 bg-[#fbcfe8] border-t-2 border-dashed border-[#d81b60]"></div>
+            <div className="w-3.5 h-0.5 bg-[#fbcfe8] rounded-full"></div>
             <span className="text-[13px] font-bold text-gray-400">Expenses</span>
         </div>
       </div>
@@ -46,12 +46,12 @@ const EarningsChart = () => {
           <AreaChart data={data} margin={{ top: 10, right: 10, left: -10, bottom: 0 }} stackOffset="sign">
             <defs>
               <linearGradient id="colorEarnings" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#1a365d" stopOpacity={0.15} />
+                <stop offset="5%" stopColor="#1a365d" stopOpacity={0.2} />
                 <stop offset="95%" stopColor="#1a365d" stopOpacity={0} />
               </linearGradient>
-              <linearGradient id="colorExpenses" x1="0" y1="1" x2="0" y2="0">
-                <stop offset="5%" stopColor="#d81b60" stopOpacity={0.15} />
-                <stop offset="95%" stopColor="#d81b60" stopOpacity={0} />
+              <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#fbcfe8" stopOpacity={0} />
+                <stop offset="95%" stopColor="#fbcfe8" stopOpacity={0.4} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="5 5" vertical={false} stroke="#f1f5f9" />
@@ -65,28 +65,35 @@ const EarningsChart = () => {
           <YAxis 
             axisLine={false} 
             tickLine={false} 
-            tick={{ fill: '#9ca3af', fontSize: 10, fontWeight: 600 }} 
-            tickFormatter={(value) => `$${value}K`}
+            tick={{ fill: '#9ca3af', fontSize: 11, fontWeight: 600 }} 
+            tickFormatter={(value) => `$${Math.abs(value)}K`}
             domain={[-6, 6]}
             ticks={[-6, -3, 0, 3, 6]}
+            dx={-10}
           />
             <Tooltip
+              cursor={{ stroke: '#f1f5f9', strokeWidth: 1 }}
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
                   return (
-                    <div className="bg-white p-3 rounded-xl shadow-xl border border-gray-50 flex flex-col gap-2 min-w-[140px]">
-                      <span className="text-[11px] font-bold text-gray-400 mb-1">{label} 2034</span>
-                      {payload.map((item, index) => (
-                        <div key={index} className="flex justify-between items-center gap-4">
-                            <div className="flex items-center gap-2">
-                                <div className="w-3 h-0.5" style={{ backgroundColor: item.color }}></div>
-                                <span className="text-[11px] font-bold text-gray-400 capitalize">{item.name}</span>
+                    <div className="relative">
+                      {/* Zero line dot */}
+                      <div className="absolute left-[-4px] top-[calc(50%-4px)] w-2 h-2 bg-[#1a365d] border-2 border-white rounded-full shadow-sm z-20"></div>
+                      
+                      <div className="bg-white p-4 rounded-xl shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] border border-gray-100 flex flex-col gap-2.5 min-w-[170px]">
+                        <span className="text-[12px] font-bold text-gray-400 mb-0.5">{label} 2034</span>
+                        {payload.map((item, index) => (
+                          <div key={index} className="flex justify-between items-center gap-6">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-3.5 h-0.5 rounded-full" style={{ backgroundColor: item.name === 'earnings' ? '#1a365d' : '#fbcfe8' }}></div>
+                              <span className="text-[12px] font-bold text-gray-400 capitalize">{item.name}</span>
                             </div>
-                            <span className="text-[13px] font-extrabold text-primary-blue">
-                                ${Math.abs(item.value).toLocaleString()}
+                            <span className={`text-[13px] font-extrabold ${item.name === 'earnings' ? 'text-[#1a365d]' : 'text-[#d81b60]'}`}>
+                              ${Math.abs(item.value).toLocaleString()}
                             </span>
-                        </div>
-                      ))}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   );
                 }
@@ -101,15 +108,17 @@ const EarningsChart = () => {
                 fillOpacity={1} 
                 fill="url(#colorEarnings)" 
                 strokeWidth={3} 
+                activeDot={{ r: 4, fill: '#1a365d', strokeWidth: 2, stroke: '#fff' }}
             />
             <Area 
                 type="stepAfter" 
                 dataKey="expenses" 
                 name="expenses"
-                stroke="#d81b60" 
+                stroke="#fbcfe8" 
                 fillOpacity={1} 
                 fill="url(#colorExpenses)" 
                 strokeWidth={3} 
+                activeDot={{ r: 4, fill: '#fbcfe8', strokeWidth: 2, stroke: '#fff' }}
             />
           </AreaChart>
         </ResponsiveContainer>
