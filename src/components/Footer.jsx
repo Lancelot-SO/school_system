@@ -4,7 +4,7 @@ const Footer = () => {
   return (
     <div className="flex flex-col md:flex-row items-center justify-between mt-8 pt-8 border-t border-gray-100 px-2 pb-6">
       <p className="text-[13px] text-gray-400 font-bold mb-4 md:mb-0">
-        Copyright © 2025 Peterdraw <span className="mx-2">·</span> Privacy Policy <span className="mx-2">·</span> Term and conditions <span className="mx-2">·</span> Contact
+        Copyright © {new Date().getFullYear()} Artfrica Studios <span className="mx-2">·</span> Privacy Policy <span className="mx-2">·</span> Term and conditions <span className="mx-2">·</span> Contact
       </p>
       <div className="flex items-center gap-4 text-gray-300">
         <div className="flex gap-4">
