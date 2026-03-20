@@ -41,7 +41,7 @@ const Sidebar = ({ isOpen, isCollapsed }) => {
             <span className="text-white font-bold text-base select-none">S</span>
           </div>
         </div>
-        {!isCollapsed && <h1 className="text-xl font-bold text-primary-blue tracking-tight">Schola</h1>}
+        {!isCollapsed && <h1 className="text-xl font-bold text-primary-blue tracking-tight">Lumi Ed</h1>}
       </div>
 
       {/* Navigation */}
