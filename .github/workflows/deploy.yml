@@ -1,0 +1,40 @@
+name: Deploy LumiEd
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ vars.IP_ADDRESS }}
+          username: root
+          key: ${{ secrets.PERSONAL_SERVER_SSH_KEY }}
+          script: |
+            set -e
+
+            echo "Loading NVM..."
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm use 22
+
+            echo "Deploying PRODUCTION..."
+            cd /var/www/production/LumiEd
+
+            echo "Pulling latest code..."
+            git pull origin main
+
+            echo "Installing dependencies..."
+            npm ci
+
+            echo "Building project..."
+            npm run build
+
+            echo "Reloading Apache..."
+            sudo systemctl reload apache2
