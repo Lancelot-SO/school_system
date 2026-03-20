@@ -1,4 +1,5 @@
 import React from 'react';
+import { NavLink } from 'react-router-dom';
 import {
   LayoutGrid,
   Mail,
@@ -16,14 +17,14 @@ import {
 const MegaphoneImage = "/megaphone.png";
 
 const navItems = [
-  { icon: LayoutGrid, label: 'Dashboard', active: true },
-  { icon: Mail, label: 'Inbox' },
-  { icon: Calendar, label: 'Calendar' },
-  { icon: Users, label: 'Teachers' },
-  { icon: UserCircle2, label: 'Students' },
-  { icon: UserPlus2, label: 'Attendance' },
-  { icon: CircleDollarSign, label: 'Finance', hasDropdown: true },
-  { icon: FileText, label: 'Notice Board' },
+  { icon: LayoutGrid, label: 'Dashboard', path: '/' },
+  { icon: Mail, label: 'Inbox', path: '/inbox' },
+  { icon: Calendar, label: 'Calendar', path: '/calendar' },
+  { icon: Users, label: 'Teachers', path: '/teachers' },
+  { icon: UserCircle2, label: 'Students', path: '/students' },
+  { icon: UserPlus2, label: 'Attendance', path: '/attendance' },
+  { icon: CircleDollarSign, label: 'Finance', path: '/finance', hasDropdown: true },
+  { icon: FileText, label: 'Notice Board', path: '/notice-board' },
 ];
 
 const Sidebar = ({ isOpen, isCollapsed }) => {
@@ -46,32 +47,40 @@ const Sidebar = ({ isOpen, isCollapsed }) => {
       {/* Navigation */}
       <nav className="flex-1 px-4 mt-2 space-y-1 overflow-y-auto overflow-x-hidden">
         {navItems.map((item, index) => (
-          <button
+          <NavLink
             key={index}
-            className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-[16px] transition-all duration-300 group ${item.active
-              ? 'bg-sidebar-active !text-primary-blue shadow-sm'
-              : 'text-sidebar-text hover:bg-gray-50 hover:text-primary-blue'
-              }`}
+            to={item.path}
+            className={({ isActive }) => `
+              w-full flex items-center justify-between px-3.5 py-2.5 rounded-[16px] transition-all duration-300 group
+              ${isActive
+                ? 'bg-sidebar-active !text-primary-blue shadow-sm'
+                : 'text-sidebar-text hover:bg-gray-50 hover:text-primary-blue'
+              }
+            `}
           >
-            <div className={`flex items-center ${isCollapsed ? 'justify-center w-full' : 'gap-3.5'}`}>
-              <item.icon
-                size={isCollapsed ? 22 : 18}
-                strokeWidth={item.active ? 2.5 : 2}
-                className={item.active ? 'text-primary-blue' : 'text-sidebar-text/70 group-hover:text-primary-blue'}
-              />
-              {!isCollapsed && (
-                <span className={`text-[12px] font-bold tracking-wide ${item.active ? 'opacity-100' : 'opacity-80'}`}>
-                  {item.label}
-                </span>
-              )}
-            </div>
-            {!isCollapsed && item.hasDropdown && (
-              <ChevronDown
-                size={14}
-                className={`transition-transform ${item.active ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'}`}
-              />
+            {({ isActive }) => (
+              <>
+                <div className={`flex items-center ${isCollapsed ? 'justify-center w-full' : 'gap-3.5'}`}>
+                  <item.icon
+                    size={isCollapsed ? 22 : 18}
+                    strokeWidth={isActive ? 2.5 : 2}
+                    className={isActive ? 'text-primary-blue' : 'text-sidebar-text/70 group-hover:text-primary-blue'}
+                  />
+                  {!isCollapsed && (
+                    <span className={`text-[12px] font-bold tracking-wide ${isActive ? 'opacity-100' : 'opacity-80'}`}>
+                      {item.label}
+                    </span>
+                  )}
+                </div>
+                {!isCollapsed && item.hasDropdown && (
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform ${isActive ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'}`}
+                  />
+                )}
+              </>
             )}
-          </button>
+          </NavLink>
         ))}
       </nav>
 
