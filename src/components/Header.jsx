@@ -9,6 +9,7 @@ const Header = ({ onMenuClick }) => {
     switch (location.pathname) {
       case '/': return 'Dashboard';
       case '/inbox': return 'Inbox';
+      case '/calendar': return 'Calendar';
       default: return 'Dashboard';
     }
   };
@@ -27,11 +28,11 @@ const Header = ({ onMenuClick }) => {
           
           <div className="flex flex-col">
             <h2 className="text-[17px] md:text-xl font-extrabold text-[#1a365d] whitespace-nowrap leading-tight">{getPageTitle()}</h2>
-            {location.pathname === '/inbox' && (
+            {(location.pathname === '/inbox' || location.pathname === '/calendar') && (
               <div className="flex items-center gap-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                 <span className="text-primary-pink">Dashboard</span>
                 <span>/</span>
-                <span>Shared</span>
+                <span>{location.pathname === '/inbox' ? 'Shared' : 'Calendar'}</span>
               </div>
             )}
           </div>
