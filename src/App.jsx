@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import Inbox from './pages/Inbox';
 import Calendar from './pages/Calendar';
 import Teachers from './pages/Teachers';
+import StudentDetails from './pages/StudentDetails';
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
           <Route path="/inbox" element={<Inbox />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/teachers" element={<Teachers />} />
+          <Route path="/student-details" element={<StudentDetails />} />
         </Routes>
       </MainLayout>
     </Router>

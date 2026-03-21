@@ -21,7 +21,7 @@ const navItems = [
   { icon: Mail, label: 'Inbox', path: '/inbox' },
   { icon: Calendar, label: 'Calendar', path: '/calendar' },
   { icon: Users, label: 'Teachers', path: '/teachers' },
-  { icon: UserCircle2, label: 'Students', path: '/students' },
+  { icon: UserCircle2, label: 'Students', path: '/student-details' },
   { icon: UserPlus2, label: 'Attendance', path: '/attendance' },
   { icon: CircleDollarSign, label: 'Finance', path: '/finance', hasDropdown: true },
   { icon: FileText, label: 'Notice Board', path: '/notice-board' },
@@ -37,7 +37,7 @@ const Sidebar = ({ isOpen, isCollapsed }) => {
       <div className={`p-6 flex items-center ${isCollapsed ? 'justify-center' : 'gap-2.5'}`}>
         <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
           <div className="absolute inset-0 bg-primary-pink/10 rounded-lg skew-x-3 rotate-6"></div>
-          <div className="relative bg-gradient-to-br from-[#f9a8d4] to-[#7dd3fc] w-7 h-7 rounded flex items-center justify-center shadow-sm">
+          <div className="relative bg-linear-to-br from-[#f9a8d4] to-[#7dd3fc] w-7 h-7 rounded flex items-center justify-center shadow-sm">
             <span className="text-white font-bold text-base select-none">S</span>
           </div>
         </div>
@@ -53,7 +53,7 @@ const Sidebar = ({ isOpen, isCollapsed }) => {
             className={({ isActive }) => `
               w-full flex items-center justify-between px-3.5 py-2.5 rounded-[16px] transition-all duration-300 group
               ${isActive
-                ? 'bg-sidebar-active !text-primary-blue shadow-sm'
+                ? 'bg-sidebar-active text-primary-blue! shadow-sm'
                 : 'text-sidebar-text hover:bg-gray-50 hover:text-primary-blue'
               }
             `}
@@ -98,8 +98,8 @@ const Sidebar = ({ isOpen, isCollapsed }) => {
             </div>
 
             <div className="mt-12 space-y-1 relative z-10">
-              <h3 className="text-[17px] font-extrabold text-[#1a365d] leading-none mb-1">New Tools Available</h3>
-              <p className="text-[11px] text-[#718096] font-semibold leading-snug px-2">
+              <h3 className="text-[17px] font-extrabold text-primary-blue leading-none mb-1">New Tools Available</h3>
+              <p className="text-[11px] text-sidebar-text font-semibold leading-snug px-2">
                 Smarter updates for easier school management
               </p>
             </div>
@@ -112,7 +112,7 @@ const Sidebar = ({ isOpen, isCollapsed }) => {
       )}
 
       {/* Logout */}
-      <div className={`px-8 pb-8 ${isCollapsed ? '!px-0 flex justify-center' : ''}`}>
+      <div className={`px-8 pb-8 ${isCollapsed ? 'px-0! flex justify-center' : ''}`}>
         <button className={`flex items-center gap-3 text-sidebar-text hover:text-red-500 transition-all group ${isCollapsed ? 'justify-center' : 'w-full'}`}>
           <LogOut size={isCollapsed ? 22 : 18} className="opacity-80 group-hover:opacity-100 transition-opacity" />
           {!isCollapsed && <span className="font-bold text-[12px]">Logout</span>}

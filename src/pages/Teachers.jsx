@@ -206,7 +206,7 @@ const Teachers = () => {
           </div>
           <div className="flex items-center justify-center gap-6 mt-4">
             <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#fbcfe8]"></div>
+              <div className="w-2.5 h-2.5 rounded-full bg-promo-btn"></div>
               <span className="text-[10px] font-bold text-gray-500">Total Classes</span>
             </div>
             <div className="flex items-center gap-2">
