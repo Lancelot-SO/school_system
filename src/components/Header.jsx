@@ -1,8 +1,7 @@
-import React from 'react';
-import { Search, Settings, Bell, Menu } from 'lucide-react';
+import { Search, Settings, Bell, Menu, X } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
-const Header = ({ onMenuClick }) => {
+const Header = ({ onMenuClick, isMenuOpen }) => {
   const location = useLocation();
 
   const getPageTitle = () => {
@@ -13,6 +12,8 @@ const Header = ({ onMenuClick }) => {
       case '/attendance': return 'Attendance';
       case '/teachers': return 'Teachers';
       case '/students/add': return 'Add Student';
+      case '/finance/fees-collection': return 'Fees Collection';
+      case '/finance/expenses': return 'Expenses';
       default: return 'Dashboard';
 
     }
@@ -35,7 +36,7 @@ const Header = ({ onMenuClick }) => {
             onClick={onMenuClick}
             className="p-2 -mr-2 text-gray-400 hover:text-primary-blue transition-colors"
           >
-            <Menu size={24} />
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
         </div>
       </div>
@@ -45,9 +46,9 @@ const Header = ({ onMenuClick }) => {
         <div className="flex items-center gap-4">
           <button
             onClick={onMenuClick}
-            className="md:hidden block p-2 -ml-2 text-gray-400 hover:text-primary-blue transition-colors"
+            className="lg:hidden block p-2 -ml-2 text-gray-400 hover:text-primary-blue transition-colors"
           >
-            <Menu size={24} />
+            {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
           <div className="flex flex-col">
             <h2 className="text-xl font-extrabold text-primary-blue leading-tight">{getPageTitle()}</h2>
