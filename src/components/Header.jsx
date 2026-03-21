@@ -14,6 +14,7 @@ const Header = ({ onMenuClick, isMenuOpen }) => {
       case '/students/add': return 'Add Student';
       case '/finance/fees-collection': return 'Fees Collection';
       case '/finance/expenses': return 'Expenses';
+      case '/notice-board': return 'Notice Board';
       default: return 'Dashboard';
 
     }

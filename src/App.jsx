@@ -10,8 +10,7 @@ import AddStudent from './pages/AddStudent';
 import Attendance from './pages/Attendance';
 import FeesCollection from './pages/FeesCollection';
 import Expenses from './pages/Expenses';
-
-
+import NoticeBoard from './pages/NoticeBoard';
 
 function App() {
   return (
@@ -27,6 +26,7 @@ function App() {
           <Route path="/attendance" element={<Attendance />} />
           <Route path="/finance/fees-collection" element={<FeesCollection />} />
           <Route path="/finance/expenses" element={<Expenses />} />
+          <Route path="/notice-board" element={<NoticeBoard />} />
 
 
         </Routes>
