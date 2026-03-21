@@ -11,6 +11,7 @@ import Attendance from './pages/Attendance';
 import FeesCollection from './pages/FeesCollection';
 import Expenses from './pages/Expenses';
 import NoticeBoard from './pages/NoticeBoard';
+import RegisterSchool from './pages/RegisterSchool';
 
 function App() {
   return (
@@ -31,6 +32,18 @@ function App() {
 
         </Routes>
       </MainLayout>
+      <Routes>
+        <Route path="/register-school" element={<RegisterSchool />} />
+
+        <Route path="/*" element={
+          <MainLayout>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/inbox" element={<Inbox />} />
+            </Routes>
+          </MainLayout>
+        } />
+      </Routes>
     </Router>
   );
 }
