@@ -16,30 +16,24 @@ import RegisterSchool from './pages/RegisterSchool';
 function App() {
   return (
     <Router>
-      <MainLayout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/inbox" element={<Inbox />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/teachers" element={<Teachers />} />
-          <Route path="/student-details" element={<StudentDetails />} />
-          <Route path="/students/add" element={<AddStudent />} />
-          <Route path="/attendance" element={<Attendance />} />
-          <Route path="/finance/fees-collection" element={<FeesCollection />} />
-          <Route path="/finance/expenses" element={<Expenses />} />
-          <Route path="/notice-board" element={<NoticeBoard />} />
-
-
-        </Routes>
-      </MainLayout>
       <Routes>
+        {/* Public Routes without Layout */}
         <Route path="/register-school" element={<RegisterSchool />} />
 
+        {/* Protected Routes with MainLayout */}
         <Route path="/*" element={
           <MainLayout>
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/inbox" element={<Inbox />} />
+              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/teachers" element={<Teachers />} />
+              <Route path="/student-details" element={<StudentDetails />} />
+              <Route path="/students/add" element={<AddStudent />} />
+              <Route path="/attendance" element={<Attendance />} />
+              <Route path="/finance/fees-collection" element={<FeesCollection />} />
+              <Route path="/finance/expenses" element={<Expenses />} />
+              <Route path="/notice-board" element={<NoticeBoard />} />
             </Routes>
           </MainLayout>
         } />

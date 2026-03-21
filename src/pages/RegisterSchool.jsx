@@ -48,11 +48,11 @@ const RegisterSchool = () => {
       if (data.token) {
         localStorage.setItem('token', data.token);
       }
-      
+
       setTimeout(() => {
         navigate('/');
       }, 1500);
-      
+
     } catch (err) {
       setError(err.message);
     } finally {
@@ -65,7 +65,7 @@ const RegisterSchool = () => {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#dfe9f3] to-[#ffffff] p-4 sm:p-8 font-sans">
         {/* Main Glass/Shadow Container */}
         <div className="flex flex-col md:flex-row w-full max-w-5xl bg-white/60 backdrop-blur-xl rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] overflow-hidden border border-white/40 p-3 sm:p-5 relative">
-          
+
           {/* Left Side: Form */}
           <div className="w-full md:w-1/2 p-6 sm:p-10 lg:p-14 flex flex-col justify-center bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative z-10">
             <h2 className="text-[2rem] font-bold text-gray-900 mb-2 tracking-tight">Sign up</h2>
@@ -76,7 +76,7 @@ const RegisterSchool = () => {
                 {error}
               </div>
             )}
-            
+
             {success && (
               <div className="mb-6 bg-green-50 border border-green-100 text-green-600 px-4 py-3 rounded-[1rem] text-sm font-medium" role="alert">
                 Registration successful! Redirecting to dashboard...
@@ -162,7 +162,7 @@ const RegisterSchool = () => {
                   {loading ? 'Creating account...' : 'Create account'}
                 </button>
               </div>
-              
+
               <p className="text-center text-sm text-gray-500 mt-6 pt-4">
                 Do you have an account? {' '}
                 <Link to="/login" className="font-semibold text-blue-600 hover:text-blue-700 transition-colors">
@@ -174,14 +174,14 @@ const RegisterSchool = () => {
 
           {/* Right Side: Image/Branding */}
           <div className="hidden md:flex w-1/2 ml-4 relative rounded-[2rem] bg-blue-100 items-start justify-start overflow-hidden">
-            <img 
-              src="https://images.unsplash.com/photo-1573164713988-8665fc963095?auto=format&fit=crop&w=800&q=80" 
-              alt="Student smiling" 
+            <img
+              src="https://images.unsplash.com/photo-1573164713988-8665fc963095?auto=format&fit=crop&w=800&q=80"
+              alt="Student smiling"
               className="absolute inset-0 w-full h-full object-cover object-center"
             />
             {/* Subtle gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-blue-900/10 to-transparent"></div>
-            
+
             <div className="relative z-10 p-8 flex items-center">
               <School className="w-8 h-8 text-[#FF9E00] mr-3 drop-shadow-md fill-current" />
               <span className="text-white font-bold text-2xl drop-shadow-md tracking-tight">Lumi Ed</span>
