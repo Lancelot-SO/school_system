@@ -36,12 +36,21 @@ const navItems = [
     ]
   },
   { icon: UserPlus2, label: 'Attendance', path: '/attendance' },
-  { icon: CircleDollarSign, label: 'Finance', path: '/finance', hasDropdown: true },
+  { 
+    icon: CircleDollarSign, 
+    label: 'Finance', 
+    path: '/finance', 
+    hasDropdown: true,
+    subItems: [
+      { label: 'Fees Collection', path: '/finance/fees-collection' },
+      { label: 'Expenses', path: '/finance/expenses' }
+    ]
+  },
 
   { icon: FileText, label: 'Notice Board', path: '/notice-board' },
 ];
 
-const Sidebar = ({ isOpen, isCollapsed }) => {
+const Sidebar = ({ isOpen, isCollapsed, onClose }) => {
   const location = useLocation();
   const [openDropdown, setOpenDropdown] = useState(null);
 
@@ -69,7 +78,7 @@ const Sidebar = ({ isOpen, isCollapsed }) => {
 
   return (
     <div className={`fixed left-0 top-0 h-screen bg-white flex flex-col z-50 transition-all duration-300 border-r border-gray-50
-      ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       ${isCollapsed ? 'w-20' : 'w-64'}
     `}>
       {/* Logo */}
@@ -169,6 +178,7 @@ const Sidebar = ({ isOpen, isCollapsed }) => {
               ) : (
                 <NavLink
                   to={item.path}
+                  onClick={onClose}
                   className={({ isActive: linkActive }) => `
                     w-full flex items-center justify-between px-3.5 py-2.5 rounded-[16px] transition-all duration-300 group
                     ${linkActive
@@ -201,6 +211,7 @@ const Sidebar = ({ isOpen, isCollapsed }) => {
                     <NavLink
                       key={idx}
                       to={sub.path}
+                      onClick={onClose}
                       className={({ isActive: subActive }) => `
                         px-4 py-2 rounded-xl text-[11px] font-bold transition-all
                         ${subActive 

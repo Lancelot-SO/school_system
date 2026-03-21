@@ -8,6 +8,8 @@ import Teachers from './pages/Teachers';
 import StudentDetails from './pages/StudentDetails';
 import AddStudent from './pages/AddStudent';
 import Attendance from './pages/Attendance';
+import FeesCollection from './pages/FeesCollection';
+import Expenses from './pages/Expenses';
 
 
 
@@ -23,6 +25,8 @@ function App() {
           <Route path="/student-details" element={<StudentDetails />} />
           <Route path="/students/add" element={<AddStudent />} />
           <Route path="/attendance" element={<Attendance />} />
+          <Route path="/finance/fees-collection" element={<FeesCollection />} />
+          <Route path="/finance/expenses" element={<Expenses />} />
 
 
         </Routes>
