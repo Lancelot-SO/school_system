@@ -10,7 +10,11 @@ const Header = ({ onMenuClick }) => {
       case '/': return 'Dashboard';
       case '/inbox': return 'Inbox';
       case '/calendar': return 'Calendar';
+      case '/attendance': return 'Attendance';
+      case '/teachers': return 'Teachers';
+      case '/students/add': return 'Add Student';
       default: return 'Dashboard';
+
     }
   };
 
@@ -27,7 +31,8 @@ const Header = ({ onMenuClick }) => {
           </button>
           
           <div className="flex flex-col">
-            <h2 className="text-[17px] md:text-xl font-extrabold text-[#1a365d] whitespace-nowrap leading-tight">{getPageTitle()}</h2>
+            <h2 className="text-[17px] md:text-xl font-extrabold text-primary-blue whitespace-nowrap leading-tight">{getPageTitle()}</h2>
+
             {(location.pathname === '/inbox' || location.pathname === '/calendar') && (
               <div className="flex items-center gap-1 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                 <span className="text-primary-pink">Dashboard</span>
@@ -56,7 +61,7 @@ const Header = ({ onMenuClick }) => {
 
           {/* Utility Icons */}
           <div className="flex items-center gap-1.5 md:gap-2.5">
-            <button className="p-2 md:p-2.5 bg-gray-50/50 rounded-xl text-gray-400 hover:text-primary-pink transition-all shadow-sm hidden xs:block">
+            <button className="p-2 md:p-2.5 bg-gray-50/50 rounded-xl text-gray-400 hover:text-primary-pink transition-all shadow-sm">
               <Settings size={18} />
             </button>
             <button className="p-2 md:p-2.5 bg-gray-50/50 rounded-xl text-gray-400 hover:text-primary-pink transition-all shadow-sm relative">
@@ -68,7 +73,7 @@ const Header = ({ onMenuClick }) => {
           {/* User Profile */}
           <div className="flex items-center gap-2 md:gap-3 pl-3 md:pl-6 md:border-l border-gray-200">
             <div className="text-right hidden md:block">
-              <p className="text-[13px] font-extrabold text-[#1a365d] leading-none mb-0.5">Oscar Hansen</p>
+              <p className="text-[13px] font-extrabold text-primary-blue leading-none mb-0.5">Oscar Hansen</p>
               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Admin</p>
             </div>
             <div className="relative cursor-pointer group">
@@ -80,6 +85,7 @@ const Header = ({ onMenuClick }) => {
             </div>
           </div>
         </div>
+
       </div>
     </header>
   );
