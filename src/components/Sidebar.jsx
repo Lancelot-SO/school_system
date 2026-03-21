@@ -1,5 +1,6 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+
 import {
   LayoutGrid,
   Mail,
@@ -21,13 +22,48 @@ const navItems = [
   { icon: Mail, label: 'Inbox', path: '/inbox' },
   { icon: Calendar, label: 'Calendar', path: '/calendar' },
   { icon: Users, label: 'Teachers', path: '/teachers' },
-  { icon: UserCircle2, label: 'Students', path: '/students' },
+  { 
+    icon: UserCircle2, 
+    label: 'Students', 
+    path: '/students', 
+    hasDropdown: true,
+    subItems: [
+      { label: 'Student Details', path: '/student-details' },
+      { label: 'Add Student', path: '/students/add' }
+    ]
+  },
   { icon: UserPlus2, label: 'Attendance', path: '/attendance' },
   { icon: CircleDollarSign, label: 'Finance', path: '/finance', hasDropdown: true },
+
   { icon: FileText, label: 'Notice Board', path: '/notice-board' },
 ];
 
 const Sidebar = ({ isOpen, isCollapsed }) => {
+  const location = useLocation();
+  const [openDropdown, setOpenDropdown] = useState(null);
+
+  // Initialize or update open dropdown based on active path
+  React.useEffect(() => {
+    const activeItem = navItems.find(item => 
+      item.hasDropdown && item.subItems?.some(sub => location.pathname === sub.path)
+    );
+    if (activeItem) {
+      setOpenDropdown(activeItem.label);
+    }
+  }, [location.pathname]);
+
+  const toggleDropdown = (label) => {
+    setOpenDropdown(openDropdown === label ? null : label);
+  };
+
+  const isParentActive = (item) => {
+    if (location.pathname === item.path) return true;
+    if (item.subItems) {
+      return item.subItems.some(sub => location.pathname === sub.path);
+    }
+    return false;
+  };
+
   return (
     <div className={`fixed left-0 top-0 h-screen bg-white flex flex-col z-50 transition-all duration-300 border-r border-gray-50
       ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
@@ -37,7 +73,7 @@ const Sidebar = ({ isOpen, isCollapsed }) => {
       <div className={`p-6 flex items-center ${isCollapsed ? 'justify-center' : 'gap-2.5'}`}>
         <div className="relative w-8 h-8 flex items-center justify-center shrink-0">
           <div className="absolute inset-0 bg-primary-pink/10 rounded-lg skew-x-3 rotate-6"></div>
-          <div className="relative bg-gradient-to-br from-[#f9a8d4] to-[#7dd3fc] w-7 h-7 rounded flex items-center justify-center shadow-sm">
+          <div className="relative bg-linear-to-br from-[#f9a8d4] to-[#7dd3fc] w-7 h-7 rounded flex items-center justify-center shadow-sm">
             <span className="text-white font-bold text-base select-none">S</span>
           </div>
         </div>
@@ -45,44 +81,97 @@ const Sidebar = ({ isOpen, isCollapsed }) => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-4 mt-2 space-y-1 overflow-y-auto overflow-x-hidden">
-        {navItems.map((item, index) => (
-          <NavLink
-            key={index}
-            to={item.path}
-            className={({ isActive }) => `
-              w-full flex items-center justify-between px-3.5 py-2.5 rounded-[16px] transition-all duration-300 group
-              ${isActive
-                ? 'bg-sidebar-active !text-primary-blue shadow-sm'
-                : 'text-sidebar-text hover:bg-gray-50 hover:text-primary-blue'
-              }
-            `}
-          >
-            {({ isActive }) => (
-              <>
-                <div className={`flex items-center ${isCollapsed ? 'justify-center w-full' : 'gap-3.5'}`}>
-                  <item.icon
-                    size={isCollapsed ? 22 : 18}
-                    strokeWidth={isActive ? 2.5 : 2}
-                    className={isActive ? 'text-primary-blue' : 'text-sidebar-text/70 group-hover:text-primary-blue'}
-                  />
+      <nav className="flex-1 px-4 mt-2 space-y-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
+        {navItems.map((item, index) => {
+          const isActive = isParentActive(item);
+          const isDropdownOpen = openDropdown === item.label;
+
+          return (
+
+            <div key={index} className="flex flex-col gap-1">
+              {item.hasDropdown ? (
+                <button
+                  onClick={() => toggleDropdown(item.label)}
+                  className={`
+                    w-full flex items-center justify-between px-3.5 py-2.5 rounded-[16px] transition-all duration-300 group
+                    ${isActive
+                      ? 'bg-sidebar-active text-primary-blue! shadow-sm'
+                      : 'text-sidebar-text hover:bg-gray-50 hover:text-primary-blue'
+                    }
+                  `}
+                >
+                  <div className={`flex items-center ${isCollapsed ? 'justify-center w-full' : 'gap-3.5'}`}>
+                    <item.icon
+                      size={isCollapsed ? 22 : 18}
+                      strokeWidth={isActive ? 2.5 : 2}
+                      className={isActive ? 'text-primary-blue' : 'text-sidebar-text/70 group-hover:text-primary-blue'}
+                    />
+                    {!isCollapsed && (
+                      <span className={`text-[12px] font-bold tracking-wide ${isActive ? 'opacity-100' : 'opacity-80'}`}>
+                        {item.label}
+                      </span>
+                    )}
+                  </div>
                   {!isCollapsed && (
-                    <span className={`text-[12px] font-bold tracking-wide ${isActive ? 'opacity-100' : 'opacity-80'}`}>
-                      {item.label}
-                    </span>
+                    <ChevronDown
+                      size={14}
+                      className={`transition-transform duration-300 ${isActive ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'} ${isDropdownOpen ? 'rotate-180' : ''}`}
+                    />
                   )}
+                </button>
+              ) : (
+                <NavLink
+                  to={item.path}
+                  className={({ isActive: linkActive }) => `
+                    w-full flex items-center justify-between px-3.5 py-2.5 rounded-[16px] transition-all duration-300 group
+                    ${linkActive
+                      ? 'bg-sidebar-active text-primary-blue! shadow-sm'
+                      : 'text-sidebar-text hover:bg-gray-50 hover:text-primary-blue'
+                    }
+                  `}
+                >
+                  {({ isActive: linkActive }) => (
+                    <div className={`flex items-center ${isCollapsed ? 'justify-center w-full' : 'gap-3.5'}`}>
+                      <item.icon
+                        size={isCollapsed ? 22 : 18}
+                        strokeWidth={linkActive ? 2.5 : 2}
+                        className={linkActive ? 'text-primary-blue' : 'text-sidebar-text/70 group-hover:text-primary-blue'}
+                      />
+                      {!isCollapsed && (
+                        <span className={`text-[12px] font-bold tracking-wide ${linkActive ? 'opacity-100' : 'opacity-80'}`}>
+                          {item.label}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </NavLink>
+              )}
+
+              {/* Sub items */}
+              {!isCollapsed && item.hasDropdown && isDropdownOpen && (
+                <div className="flex flex-col gap-1 ml-9 mt-1 border-l-2 border-gray-50 pl-2 animate-in slide-in-from-top-2 duration-300">
+                  {item.subItems.map((sub, idx) => (
+                    <NavLink
+                      key={idx}
+                      to={sub.path}
+                      className={({ isActive: subActive }) => `
+                        px-4 py-2 rounded-xl text-[11px] font-bold transition-all
+                        ${subActive 
+                          ? 'text-primary-pink bg-pink-50/50' 
+                          : 'text-sidebar-text hover:text-primary-blue hover:bg-gray-50'
+                        }
+                      `}
+                    >
+                      {sub.label}
+                    </NavLink>
+                  ))}
                 </div>
-                {!isCollapsed && item.hasDropdown && (
-                  <ChevronDown
-                    size={14}
-                    className={`transition-transform ${isActive ? 'opacity-100' : 'opacity-40 group-hover:opacity-100'}`}
-                  />
-                )}
-              </>
-            )}
-          </NavLink>
-        ))}
+              )}
+            </div>
+          );
+        })}
       </nav>
+
 
       {/* Promo Card precisely as seen in the image - Hidden on medium/collapsed */}
       {!isCollapsed && (
@@ -98,8 +187,8 @@ const Sidebar = ({ isOpen, isCollapsed }) => {
             </div>
 
             <div className="mt-12 space-y-1 relative z-10">
-              <h3 className="text-[17px] font-extrabold text-[#1a365d] leading-none mb-1">New Tools Available</h3>
-              <p className="text-[11px] text-[#718096] font-semibold leading-snug px-2">
+              <h3 className="text-[17px] font-extrabold text-primary-blue leading-none mb-1">New Tools Available</h3>
+              <p className="text-[11px] text-sidebar-text font-semibold leading-snug px-2">
                 Smarter updates for easier school management
               </p>
             </div>
@@ -112,7 +201,7 @@ const Sidebar = ({ isOpen, isCollapsed }) => {
       )}
 
       {/* Logout */}
-      <div className={`px-8 pb-8 ${isCollapsed ? '!px-0 flex justify-center' : ''}`}>
+      <div className={`px-8 pb-8 ${isCollapsed ? 'px-0! flex justify-center' : ''}`}>
         <button className={`flex items-center gap-3 text-sidebar-text hover:text-red-500 transition-all group ${isCollapsed ? 'justify-center' : 'w-full'}`}>
           <LogOut size={isCollapsed ? 22 : 18} className="opacity-80 group-hover:opacity-100 transition-opacity" />
           {!isCollapsed && <span className="font-bold text-[12px]">Logout</span>}

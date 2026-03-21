@@ -5,6 +5,11 @@ import Dashboard from './pages/Dashboard';
 import Inbox from './pages/Inbox';
 import Calendar from './pages/Calendar';
 import Teachers from './pages/Teachers';
+import StudentDetails from './pages/StudentDetails';
+import AddStudent from './pages/AddStudent';
+import Attendance from './pages/Attendance';
+
+
 
 function App() {
   return (
@@ -15,6 +20,11 @@ function App() {
           <Route path="/inbox" element={<Inbox />} />
           <Route path="/calendar" element={<Calendar />} />
           <Route path="/teachers" element={<Teachers />} />
+          <Route path="/student-details" element={<StudentDetails />} />
+          <Route path="/students/add" element={<AddStudent />} />
+          <Route path="/attendance" element={<Attendance />} />
+
+
         </Routes>
       </MainLayout>
     </Router>
