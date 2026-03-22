@@ -26,10 +26,11 @@ const RegisterSchool = () => {
     setSuccess(false);
 
     try {
-      const response = await fetch('/api/schools/register', {
+      const response = await fetch('http://lumi-api.artfricastudio.com/api/schools/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
         },
         body: JSON.stringify(formData)
       });
