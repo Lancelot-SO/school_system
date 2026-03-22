@@ -103,10 +103,12 @@ const Login = () => {
 
       // Role-based routing
       const role = data.user?.role?.toLowerCase();
-      if (role === 'admin') navigate('/admin/dashboard');
-      else if (role === 'teacher') navigate('/teacher/dashboard');
-      else if (role === 'student') navigate('/student/dashboard');
-      else navigate('/'); // fallback destination
+      const slug = selectedSchool.school_slug;
+      
+      if (role === 'admin') navigate(`/${slug}/admin/dashboard`);
+      else if (role === 'teacher') navigate(`/${slug}/teacher/dashboard`);
+      else if (role === 'student') navigate(`/${slug}/student/dashboard`);
+      else navigate(`/${slug}/admin/dashboard`); // fallback destination
 
     } catch (err) {
       setError(err.message);

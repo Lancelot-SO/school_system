@@ -27,6 +27,10 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+a, button, [role="button"] {
+  cursor: pointer;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
 }

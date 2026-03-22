@@ -32,21 +32,29 @@ function App() {
         <Route path="/onboarding/upload-teachers" element={<UploadBulkTeachers />} />
 
         {/* Private Dashboard Routes with Sidebar */}
-        <Route path="*" element={
+        <Route path="/:school_slug/*" element={
           <ProtectedRoute>
             <MainLayout>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/inbox" element={<Inbox />} />
-              <Route path="/calendar" element={<Calendar />} />
-              <Route path="/teachers" element={<Teachers />} />
-              <Route path="/student-details" element={<StudentDetails />} />
-              <Route path="/students/add" element={<AddStudent />} />
-              <Route path="/attendance" element={<Attendance />} />
-              <Route path="/finance/fees-collection" element={<FeesCollection />} />
-              <Route path="/finance/expenses" element={<Expenses />} />
-              <Route path="/notice-board" element={<NoticeBoard />} />
-            </Routes>
+              <Routes>
+                {/* Admin Routes */}
+                <Route path="admin/dashboard" element={<Dashboard />} />
+                <Route path="admin/inbox" element={<Inbox />} />
+                <Route path="admin/calendar" element={<Calendar />} />
+                <Route path="admin/teachers" element={<Teachers />} />
+                <Route path="admin/student-details" element={<StudentDetails />} />
+                <Route path="admin/students/add" element={<AddStudent />} />
+                <Route path="admin/attendance" element={<Attendance />} />
+                <Route path="admin/finance/fees-collection" element={<FeesCollection />} />
+                <Route path="admin/finance/expenses" element={<Expenses />} />
+                <Route path="admin/notice-board" element={<NoticeBoard />} />
+                
+                {/* Placeholder Routes for other roles */}
+                <Route path="teacher/dashboard" element={<Dashboard />} />
+                <Route path="student/dashboard" element={<Dashboard />} />
+                
+                {/* Fallback */}
+                <Route path="*" element={<Dashboard />} />
+              </Routes>
             </MainLayout>
           </ProtectedRoute>
         } />

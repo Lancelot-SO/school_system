@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import {
   LayoutGrid,
@@ -21,8 +21,8 @@ import {
 // Using the megaphone image from the public folder
 const MegaphoneImage = "/megaphone.png";
 
-const navItems = [
-  { icon: LayoutGrid, label: 'Dashboard', path: '/' },
+const navItemsRaw = [
+  { icon: LayoutGrid, label: 'Dashboard', path: '/dashboard' },
   { icon: Mail, label: 'Inbox', path: '/inbox' },
   { icon: Calendar, label: 'Calendar', path: '/calendar' },
   { icon: Users, label: 'Teachers', path: '/teachers' },
@@ -53,7 +53,41 @@ const navItems = [
 
 const Sidebar = ({ isOpen, isCollapsed, onClose, user }) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { school_slug } = useParams();
+  
+  // Dynamically prefix paths
+  const navItems = navItemsRaw.map(item => ({
+    ...item,
+    path: `/${school_slug}/admin${item.path}`,
+    subItems: item.subItems?.map(sub => ({
+      ...sub,
+      path: `/${school_slug}/admin${sub.path}`
+    }))
+  }));
+
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+    setIsLoggingOut(true);
+    try {
+      await fetch('https://lumi-api.artfricastudio.com/api/logout', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Accept': 'application/json'
+        }
+      });
+    } catch (err) {
+      console.error('Logout failed:', err);
+    } finally {
+      localStorage.removeItem('token');
+      navigate('/login');
+      setIsLoggingOut(false);
+    }
+  };
 
   // Initialize or update open dropdown based on active path
   React.useEffect(() => {
@@ -113,8 +147,8 @@ const Sidebar = ({ isOpen, isCollapsed, onClose, user }) => {
               <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white"></span>
             </div>
             <div className="flex flex-col">
-              <span className="text-[14px] font-extrabold text-primary-blue leading-tight">{user?.name || 'Oscar Hansen'}</span>
-              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{user?.role ? `${user.role} Account` : 'Admin Account'}</span>
+              <span className="text-[14px] font-extrabold text-primary-blue leading-tight">{user?.name || 'Default User'}</span>
+              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{user?.role ? `${user.role} Account` : 'User Account'}</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -267,9 +301,13 @@ const Sidebar = ({ isOpen, isCollapsed, onClose, user }) => {
 
       {/* Logout */}
       <div className={`px-8 pb-8 ${isCollapsed ? 'px-0! flex justify-center' : ''}`}>
-        <button className={`flex items-center gap-3 text-sidebar-text hover:text-red-500 transition-all group ${isCollapsed ? 'justify-center' : 'w-full'}`}>
-          <LogOut size={isCollapsed ? 22 : 18} className="opacity-80 group-hover:opacity-100 transition-opacity" />
-          {!isCollapsed && <span className="font-bold text-[12px]">Logout</span>}
+        <button 
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+          className={`flex items-center gap-3 text-sidebar-text hover:text-red-500 transition-all group ${isCollapsed ? 'justify-center' : 'w-full'} ${isLoggingOut ? 'opacity-50 cursor-not-allowed' : ''}`}
+        >
+          <LogOut size={isCollapsed ? 22 : 18} className={`opacity-80 group-hover:opacity-100 transition-opacity ${isLoggingOut ? 'animate-pulse' : ''}`} />
+          {!isCollapsed && <span className="font-bold text-[12px]">{isLoggingOut ? 'Logging out...' : 'Logout'}</span>}
         </button>
       </div>
 
