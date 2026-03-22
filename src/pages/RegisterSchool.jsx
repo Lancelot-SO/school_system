@@ -51,7 +51,7 @@ const RegisterSchool = () => {
       }
 
       setTimeout(() => {
-        navigate('/onboarding/upload-students', { 
+        navigate('/onboarding/school-details', { 
           state: { 
             school_name: formData.school_name, 
             admin_name: formData.admin_name 
