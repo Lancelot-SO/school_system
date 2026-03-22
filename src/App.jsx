@@ -12,16 +12,22 @@ import FeesCollection from './pages/FeesCollection';
 import Expenses from './pages/Expenses';
 import NoticeBoard from './pages/NoticeBoard';
 import RegisterSchool from './pages/RegisterSchool';
+import SchoolDetails from './pages/onboarding/SchoolDetails';
+import UploadBulkStudents from './pages/onboarding/UploadBulkStudents';
+import UploadBulkTeachers from './pages/onboarding/UploadBulkTeachers';
 
 function App() {
   return (
     <Router>
       <Routes>
-        {/* Public Routes without Layout */}
+        {/* No Sidebar Routes */}
         <Route path="/register-school" element={<RegisterSchool />} />
+        <Route path="/onboarding/school-details" element={<SchoolDetails />} />
+        <Route path="/onboarding/upload-students" element={<UploadBulkStudents />} />
+        <Route path="/onboarding/upload-teachers" element={<UploadBulkTeachers />} />
 
-        {/* Protected Routes with MainLayout */}
-        <Route path="/*" element={
+        {/* Private Dashboard Routes with Sidebar */}
+        <Route path="*" element={
           <MainLayout>
             <Routes>
               <Route path="/" element={<Dashboard />} />
