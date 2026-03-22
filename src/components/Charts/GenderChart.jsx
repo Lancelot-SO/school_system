@@ -1,13 +1,18 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
-const data = [
+const defaultData = [
   { name: 'Boys', value: 560, color: '#1a365d' },
   { name: 'Girls', value: 685, color: '#fbcfe8' },
 ];
-const total = 1245;
 
-const GenderChart = () => {
+const GenderChart = ({ data: apiData }) => {
+  const chartData = apiData && apiData.total > 0 ? [
+    { name: 'Boys', value: apiData.boys || 0, color: '#1a365d' },
+    { name: 'Girls', value: apiData.girls || 0, color: '#fbcfe8' },
+  ] : defaultData;
+  
+  const total = apiData?.total > 0 ? apiData.total : 1245;
   return (
     <div className="bg-white p-6 rounded-[24px] shadow-sm border border-gray-50 flex flex-col h-full min-h-[420px]">
       <div className="flex items-center justify-between mb-2 px-1">
@@ -25,7 +30,7 @@ const GenderChart = () => {
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={data}
+                data={chartData}
                 cx="50%"
                 cy="50%"
                 innerRadius={75}
@@ -36,7 +41,7 @@ const GenderChart = () => {
                 startAngle={90}
                 endAngle={450}
               >
-                {data.map((entry, index) => (
+                {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
                 ))}
               </Pie>
@@ -50,7 +55,7 @@ const GenderChart = () => {
       </div>
 
       <div className="flex justify-center gap-8 mt-4">
-        {data.map((item, index) => (
+        {chartData.map((item, index) => (
           <div key={index} className="flex items-center gap-2">
             <div className={`w-3 h-3 rounded-[3px] ${index === 0 ? 'bg-[#1a365d]' : 'bg-[#fbcfe8]'}`}></div>
             <span className="text-[13px] font-bold text-gray-400">

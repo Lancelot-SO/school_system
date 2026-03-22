@@ -15,6 +15,8 @@ import SchoolDetails from './pages/onboarding/SchoolDetails';
 import UploadBulkStudents from './pages/onboarding/UploadBulkStudents';
 import UploadBulkTeachers from './pages/onboarding/UploadBulkTeachers';
 import RegisterSchool from './pages/RegisterSchool';
+import Login from './pages/Login';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
@@ -22,6 +24,7 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/register-school" element={<RegisterSchool />} />
+        <Route path="/login" element={<Login />} />
 
         {/* Onboarding Routes - No Sidebar */}
         <Route path="/onboarding/school-details" element={<SchoolDetails />} />
@@ -30,7 +33,8 @@ function App() {
 
         {/* Private Dashboard Routes with Sidebar */}
         <Route path="*" element={
-          <MainLayout>
+          <ProtectedRoute>
+            <MainLayout>
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/inbox" element={<Inbox />} />
@@ -43,7 +47,8 @@ function App() {
               <Route path="/finance/expenses" element={<Expenses />} />
               <Route path="/notice-board" element={<NoticeBoard />} />
             </Routes>
-          </MainLayout>
+            </MainLayout>
+          </ProtectedRoute>
         } />
       </Routes>
     </Router>
