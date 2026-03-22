@@ -1,15 +1,59 @@
 import React, { useState } from 'react';
 import { Camera, MapPin, Plus, ArrowRight, Lightbulb, ShieldCheck } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import StepIndicator from '../../components/onboarding/StepIndicator';
 import OnboardingLayout from '../../components/onboarding/OnboardingLayout';
 import schoolPreview from '../../assets/onboarding/school_building_preview.png';
 
 const SchoolDetails = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { school_name: initialSchoolName, admin_name } = location.state || {};
+
   const [awards, setAwards] = useState(['Award Name 01', 'Award Name 02']);
+  const [formData, setFormData] = useState({
+    school_name: initialSchoolName || '',
+    school_location: '',
+    description: ''
+  });
+  const [loading, setLoading] = useState(false);
 
   const addAward = () => setAwards([...awards, '']);
+
+  const handleInputChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleAwardChange = (idx, val) => {
+    const newAwards = [...awards];
+    newAwards[idx] = val;
+    setAwards(newAwards);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      await fetch('https://lumi-api.artfricastudio.com/api/school/profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({
+          ...formData,
+          awards: awards.filter(a => a.trim() !== '')
+        })
+      });
+      navigate('/onboarding/upload-students', { state: { school_name: formData.school_name, admin_name } });
+    } catch (err) {
+      console.error(err);
+      navigate('/onboarding/upload-students', { state: { school_name: formData.school_name, admin_name } });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <OnboardingLayout>
@@ -18,7 +62,7 @@ const SchoolDetails = () => {
         <div className="flex-1 w-full max-w-2xl">
           <StepIndicator currentStep={1} totalSteps={3} title="School Details" />
 
-          <form className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-700 delay-100">
+          <form onSubmit={handleSubmit} className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-700 delay-100">
             {/* School Logo Upload */}
             <div className="space-y-3">
               <label className="text-sm font-bold text-slate-700">School Logo</label>
@@ -35,6 +79,10 @@ const SchoolDetails = () => {
               <label className="text-sm font-bold text-slate-700">School Name</label>
               <input 
                 type="text" 
+                name="school_name"
+                value={formData.school_name}
+                onChange={handleInputChange}
+                required
                 placeholder="e.g. St. James International Academy"
                 className="w-full px-5 py-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all outline-none text-slate-900 font-medium placeholder:text-slate-400"
               />
@@ -49,7 +97,8 @@ const SchoolDetails = () => {
                     key={idx}
                     type="text" 
                     placeholder="Award Name"
-                    defaultValue={award}
+                    value={award}
+                    onChange={(e) => handleAwardChange(idx, e.target.value)}
                     className="w-full px-5 py-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all outline-none text-slate-900 font-medium placeholder:text-slate-400"
                   />
                 ))}
@@ -71,6 +120,9 @@ const SchoolDetails = () => {
                 <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={20} />
                 <input 
                   type="text" 
+                  name="school_location"
+                  value={formData.school_location}
+                  onChange={handleInputChange}
                   placeholder="Enter primary campus address"
                   className="w-full pl-14 pr-5 py-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all outline-none text-slate-900 font-medium placeholder:text-slate-400"
                 />
@@ -82,6 +134,9 @@ const SchoolDetails = () => {
               <label className="text-sm font-bold text-slate-700">School Description</label>
               <textarea 
                 rows={5}
+                name="description"
+                value={formData.description}
+                onChange={handleInputChange}
                 placeholder="Tell us about your institution's history, mission, and values..."
                 className="w-full px-6 py-5 bg-slate-100 border-none rounded-3xl focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all outline-none text-slate-900 font-medium placeholder:text-slate-400 resize-none"
               />
@@ -89,11 +144,11 @@ const SchoolDetails = () => {
 
             {/* Submit Button */}
             <button 
-              type="button"
-              onClick={() => navigate('/onboarding/upload-students')}
-              className="mt-8 flex items-center gap-3 bg-blue-700 text-white px-10 py-5 rounded-[20px] font-bold text-base hover:bg-blue-800 hover:shadow-2xl hover:shadow-blue-200 transition-all hover:-translate-y-1 active:translate-y-0 group"
+              type="submit"
+              disabled={loading}
+              className={`mt-8 flex items-center gap-3 bg-blue-700 text-white px-10 py-5 rounded-[20px] font-bold text-base hover:bg-blue-800 hover:shadow-2xl hover:shadow-blue-200 transition-all hover:-translate-y-1 active:translate-y-0 group ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
-              Next (Optional)
+              {loading ? 'Saving...' : 'Next Step'}
               <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} strokeWidth={2.5} />
             </button>
           </form>
@@ -106,9 +161,11 @@ const SchoolDetails = () => {
             <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 mb-6">
               <Lightbulb size={24} />
             </div>
-            <h3 className="text-xl font-extrabold text-slate-900 mb-4">Institutional Tip</h3>
+            <h3 className="text-xl font-extrabold text-slate-900 mb-4">
+              {admin_name ? `Welcome, ${admin_name}!` : 'Institutional Tip'}
+            </h3>
             <p className="text-sm text-slate-500 leading-relaxed mb-6 font-medium">
-              A clear and compelling description helps parents and students understand your school's unique pedagogical approach. Focus on your <span className="text-blue-600 font-bold underline decoration-2 underline-offset-4">Key Differentiators</span>.
+              A clear and compelling description helps parents and students understand {formData.school_name ? formData.school_name : "your school"}'s unique pedagogical approach. Focus on your <span className="text-blue-600 font-bold underline decoration-2 underline-offset-4">Key Differentiators</span>.
             </p>
             
             <div className="space-y-3">

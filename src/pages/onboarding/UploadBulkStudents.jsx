@@ -1,5 +1,6 @@
 import React from 'react';
 import { Upload, FileDown, CheckCircle2, MessageSquare, ArrowLeft, ArrowRight, Info, HelpCircle } from 'lucide-react';
+import { useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import StepIndicator from '../../components/onboarding/StepIndicator';
 import OnboardingLayout from '../../components/onboarding/OnboardingLayout';
@@ -8,6 +9,49 @@ const UploadBulkStudents = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { school_name, admin_name } = location.state || {};
+  
+  const [file, setFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleNextStep = async () => {
+    if (!file) {
+      navigate('/onboarding/upload-teachers', { state: { school_name, admin_name } });
+      return;
+    }
+
+    setLoading(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      await fetch('https://lumi-api.artfricastudio.com/api/students/import', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: formData
+      });
+      navigate('/onboarding/upload-teachers', { state: { school_name, admin_name } });
+    } catch (err) {
+      console.error(err);
+      navigate('/onboarding/upload-teachers', { state: { school_name, admin_name } });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <OnboardingLayout>
       <div className="flex flex-col lg:flex-row gap-16 lg:gap-24 items-start w-full">
@@ -17,7 +61,17 @@ const UploadBulkStudents = () => {
 
           <div className="space-y-12 animate-in fade-in slide-in-from-left-4 duration-700 delay-100">
             {/* Drop Zone */}
-            <div className="bg-white border-2 border-dashed border-slate-200 rounded-[32px] p-16 flex flex-col items-center justify-center space-y-8 hover:border-blue-400 hover:bg-blue-50/20 transition-all cursor-pointer group relative">
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleFileChange} 
+              className="hidden" 
+              accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+            />
+            <div 
+              onClick={handleUploadClick}
+              className={`bg-white border-2 border-dashed ${file ? 'border-blue-500 bg-blue-50/50' : 'border-slate-200 hover:border-blue-400 hover:bg-blue-50/20'} rounded-[32px] p-16 flex flex-col items-center justify-center space-y-8 transition-all cursor-pointer group relative`}
+            >
               <div className="w-16 h-16 bg-blue-100/50 rounded-2xl flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
                 <Upload size={32} />
               </div>
@@ -31,9 +85,9 @@ const UploadBulkStudents = () => {
                 </p>
               </div>
 
-              <button className="bg-blue-700 text-white px-8 py-3.5 rounded-xl font-bold text-sm hover:bg-blue-800 transition-all shadow-lg shadow-blue-200">
-                Upload File
-              </button>
+              <div className="text-sm font-semibold text-blue-600">
+                {file ? `Selected: ${file.name}` : 'Click to Upload File'}
+              </div>
 
               <div className="flex items-center gap-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                 <span className="flex items-center gap-2"><CheckCircle2 size={12} /> CSV</span>
@@ -83,10 +137,11 @@ const UploadBulkStudents = () => {
                 Back
               </button>
               <button 
-                onClick={() => navigate('/onboarding/upload-teachers')}
-                className="bg-slate-900 text-white px-10 py-4 rounded-xl font-bold text-sm hover:bg-black transition-all shadow-xl shadow-slate-200"
+                onClick={handleNextStep}
+                disabled={loading}
+                className={`bg-slate-900 text-white px-10 py-4 rounded-xl font-bold text-sm hover:bg-black transition-all shadow-xl shadow-slate-200 ${loading ? 'opacity-70 cursor-wait' : ''}`}
               >
-                Next Step
+                {loading ? 'Uploading...' : 'Next Step'}
               </button>
             </div>
           </div>
