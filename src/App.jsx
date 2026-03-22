@@ -17,12 +17,24 @@ import UploadBulkTeachers from './pages/onboarding/UploadBulkTeachers';
 import RegisterSchool from './pages/RegisterSchool';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
+import { Navigate } from 'react-router-dom';
+
+const RootRedirect = () => {
+  const token = localStorage.getItem('token');
+  const slug = localStorage.getItem('active_school_slug');
+  
+  if (token && slug) {
+    return <Navigate to={`/${slug}/admin/dashboard`} replace />;
+  }
+  return <Navigate to="/login" replace />;
+};
 
 function App() {
   return (
     <Router>
       <Routes>
         {/* Public Routes */}
+        <Route path="/" element={<RootRedirect />} />
         <Route path="/register-school" element={<RegisterSchool />} />
         <Route path="/login" element={<Login />} />
 

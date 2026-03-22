@@ -10,6 +10,7 @@ import RecentActivity from '../components/RecentActivity';
 import UpcomingEvents from '../components/UpcomingEvents';
 import Footer from '../components/Footer';
 import CalendarCard from '../components/CalendarCard';
+import OnboardingProgress from '../components/OnboardingProgress';
 import { GraduationCap, Presentation, Contact2, Trophy } from 'lucide-react';
 
 const Dashboard = () => {
@@ -61,6 +62,10 @@ const Dashboard = () => {
     <div className="flex flex-col xl:flex-row gap-6 py-6 items-stretch">
       {/* Main Content Area */}
       <div className="flex-[3] flex flex-col gap-6 min-w-0">
+        
+        {/* Dynamic Onboarding Reminder Banner */}
+        <OnboardingProgress setupData={data?.onboarding} />
+
         {/* Stats Grid: 4 cols on lg+, 2 cols on mobile */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
           {stats.map((stat, index) => (
