@@ -51,7 +51,12 @@ const RegisterSchool = () => {
       }
 
       setTimeout(() => {
-        navigate('/');
+        navigate('/onboarding/upload-students', { 
+          state: { 
+            school_name: formData.school_name, 
+            admin_name: formData.admin_name 
+          }
+        });
       }, 1500);
 
     } catch (err) {
