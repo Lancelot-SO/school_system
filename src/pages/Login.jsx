@@ -105,6 +105,8 @@ const Login = () => {
       const role = data.user?.role?.toLowerCase();
       const slug = selectedSchool.school_slug;
       
+      localStorage.setItem('active_school_slug', slug);
+      
       if (role === 'admin') navigate(`/${slug}/admin/dashboard`);
       else if (role === 'teacher') navigate(`/${slug}/teacher/dashboard`);
       else if (role === 'student') navigate(`/${slug}/student/dashboard`);
