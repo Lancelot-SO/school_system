@@ -14,11 +14,15 @@ import NoticeBoard from './pages/NoticeBoard';
 import SchoolDetails from './pages/onboarding/SchoolDetails';
 import UploadBulkStudents from './pages/onboarding/UploadBulkStudents';
 import UploadBulkTeachers from './pages/onboarding/UploadBulkTeachers';
+import RegisterSchool from './pages/RegisterSchool';
 
 function App() {
   return (
     <Router>
       <Routes>
+        {/* Public Routes */}
+        <Route path="/register-school" element={<RegisterSchool />} />
+
         {/* Onboarding Routes - No Sidebar */}
         <Route path="/onboarding/school-details" element={<SchoolDetails />} />
         <Route path="/onboarding/upload-students" element={<UploadBulkStudents />} />

@@ -1,11 +1,13 @@
 import React from 'react';
 import { Upload, FileDown, CheckCircle2, MessageSquare, ArrowLeft, ArrowRight, Info, HelpCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import StepIndicator from '../../components/onboarding/StepIndicator';
 import OnboardingLayout from '../../components/onboarding/OnboardingLayout';
 
 const UploadBulkStudents = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { school_name, admin_name } = location.state || {};
   return (
     <OnboardingLayout>
       <div className="flex flex-col lg:flex-row gap-16 lg:gap-24 items-start w-full">
@@ -21,7 +23,9 @@ const UploadBulkStudents = () => {
               </div>
               
               <div className="text-center space-y-2">
-                <h3 className="text-xl font-bold text-slate-900">Students List Drop Zone</h3>
+                <h3 className="text-xl font-bold text-slate-900">
+                  {school_name ? `${school_name} Students Drop Zone` : 'Students List Drop Zone'}
+                </h3>
                 <p className="text-sm text-slate-500 max-w-xs mx-auto leading-relaxed">
                   Drag and drop your spreadsheet here, or browse your files to upload.
                 </p>
@@ -99,9 +103,11 @@ const UploadBulkStudents = () => {
             <div className="w-12 h-12 bg-orange-900 rounded-2xl flex items-center justify-center text-white mb-6 relative">
               <Info size={24} />
             </div>
-            <h3 className="text-xl font-extrabold text-orange-950 mb-4 relative">Institutional Tip</h3>
+            <h3 className="text-xl font-extrabold text-orange-950 mb-4 relative">
+              {admin_name ? `Welcome, ${admin_name}!` : 'Institutional Tip'}
+            </h3>
             <p className="text-sm text-orange-900/80 leading-relaxed mb-6 font-medium relative">
-              Preparing your student list accurately is key to a smooth onboarding. Ensure there are no empty rows or duplicate email addresses. Our system will flag any inconsistencies before the final import.
+              Preparing your student list accurately is key to a smooth onboarding{school_name ? ` for ${school_name}` : ''}. Ensure there are no empty rows or duplicate email addresses. Our system will flag any inconsistencies before the final import.
             </p>
             
             <button className="flex items-center gap-2 text-orange-900 font-bold text-[11px] uppercase tracking-widest relative group">
