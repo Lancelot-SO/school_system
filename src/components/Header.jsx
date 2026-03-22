@@ -5,19 +5,18 @@ const Header = ({ onMenuClick, isMenuOpen, user }) => {
   const location = useLocation();
 
   const getPageTitle = () => {
-    switch (location.pathname) {
-      case '/': return 'Dashboard';
-      case '/inbox': return 'Inbox';
-      case '/calendar': return 'Calendar';
-      case '/attendance': return 'Attendance';
-      case '/teachers': return 'Teachers';
-      case '/students/add': return 'Add Student';
-      case '/finance/fees-collection': return 'Fees Collection';
-      case '/finance/expenses': return 'Expenses';
-      case '/notice-board': return 'Notice Board';
-      default: return 'Dashboard';
-
-    }
+    const path = location.pathname;
+    if (path.includes('/dashboard')) return 'Dashboard';
+    if (path.includes('/inbox')) return 'Inbox';
+    if (path.includes('/calendar')) return 'Calendar';
+    if (path.includes('/attendance')) return 'Attendance';
+    if (path.includes('/teachers')) return 'Teachers';
+    if (path.includes('/students/add')) return 'Add Student';
+    if (path.includes('/student-details')) return 'Student Details';
+    if (path.includes('/finance/fees-collection')) return 'Fees Collection';
+    if (path.includes('/finance/expenses')) return 'Expenses';
+    if (path.includes('/notice-board')) return 'Notice Board';
+    return 'Dashboard';
   };
 
   return (
@@ -76,8 +75,8 @@ const Header = ({ onMenuClick, isMenuOpen, user }) => {
           </div>
           <div className="flex items-center gap-3 pl-6 border-l border-gray-100">
             <div className="text-right">
-              <p className="text-[13px] font-extrabold text-primary-blue leading-none mb-0.5">{user?.name || 'Oscar Hansen'}</p>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{user?.role || 'Admin'}</p>
+              <p className="text-[13px] font-extrabold text-primary-blue leading-none mb-0.5">{user?.name || 'Default User'}</p>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{user?.role || 'User'}</p>
             </div>
             {user?.profile_picture ? (
               <img
