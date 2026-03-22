@@ -13,12 +13,49 @@ import CalendarCard from '../components/CalendarCard';
 import { GraduationCap, Presentation, Contact2, Trophy } from 'lucide-react';
 
 const Dashboard = () => {
+  const [data, setData] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await fetch('https://lumi-api.artfricastudio.com/api/dashboard', {
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        if (response.ok) {
+          const result = await response.json();
+          // Assuming typical Laravel payload wrapped in 'data' or direct object
+          setData(result.data || result);
+        } else {
+          console.error("Failed to fetch dashboard data");
+        }
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchDashboardData();
+  }, []);
+
   const stats = [
-    { title: 'Enrolled Students', value: '1,245', icon: GraduationCap, color: 'bg-[#1a365d]', iconColor: 'text-white' },
-    { title: 'Active Teachers', value: '86', icon: Presentation, color: 'bg-[#fbcfe8]', iconColor: 'text-[#d81b60]' },
-    { title: 'Support Staff', value: '34', icon: Contact2, color: 'bg-[#1a365d]', iconColor: 'text-white' },
-    { title: 'Total Awards', value: '152', icon: Trophy, color: 'bg-[#fbcfe8]', iconColor: 'text-[#d81b60]' },
+    { title: 'Enrolled Students', value: data?.overview?.enrolled_students ?? '1,245', icon: GraduationCap, color: 'bg-[#1a365d]', iconColor: 'text-white' },
+    { title: 'Active Teachers', value: data?.overview?.active_teachers ?? '86', icon: Presentation, color: 'bg-[#fbcfe8]', iconColor: 'text-[#d81b60]' },
+    { title: 'Support Staff', value: data?.overview?.support_staff ?? '34', icon: Contact2, color: 'bg-[#1a365d]', iconColor: 'text-white' },
+    { title: 'Total Awards', value: data?.overview?.total_awards ?? '152', icon: Trophy, color: 'bg-[#fbcfe8]', iconColor: 'text-[#d81b60]' },
   ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col xl:flex-row gap-6 py-6 items-stretch">
@@ -33,10 +70,10 @@ const Dashboard = () => {
 
         {/* Charts Grid: 2 cols on md+, 1 col on mobile */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <PerformanceChart />
-          <GenderChart />
-          <EarningsChart />
-          <AttendanceChart />
+          <PerformanceChart data={data?.student_performance} />
+          <GenderChart data={data?.students_by_gender} />
+          <EarningsChart data={data?.earnings} />
+          <AttendanceChart data={data?.student_attendance} />
         </div>
 
         {/* Notice Board - Flexible height to match sidebar */}
@@ -45,8 +82,8 @@ const Dashboard = () => {
         {/* Tablet Navigation: (Calendar, Events, ToDo, Activity) below Notice Board for MD screens */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 xl:hidden">
             <CalendarCard />
-            <UpcomingEvents />
-            <ToDoList />
+            <UpcomingEvents data={data?.events} />
+            <ToDoList data={data?.to_do_list} />
             <RecentActivity />
         </div>
 
@@ -59,8 +96,8 @@ const Dashboard = () => {
       {/* Right Sidebar: (Desktop only) */}
       <div className="flex-1 hidden xl:flex flex-col gap-6 min-w-[320px]">
         <CalendarCard />
-        <UpcomingEvents />
-        <ToDoList />
+        <UpcomingEvents data={data?.events} />
+        <ToDoList data={data?.to_do_list} />
         <RecentActivity className="flex-1" />
       </div>
 

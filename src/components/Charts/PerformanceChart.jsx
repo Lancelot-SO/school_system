@@ -2,7 +2,7 @@ import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceArea } from 'recharts';
 import { MoreHorizontal } from 'lucide-react';
 
-const data = [
+const defaultData = [
   { name: 'Jul', grade7: 82, grade8: 88, grade9: 78 },
   { name: 'Aug', grade7: 75, grade8: 95, grade9: 86 },
   { name: 'Sep', grade7: 78, grade8: 92, grade9: 82 },
@@ -11,7 +11,17 @@ const data = [
   { name: 'Dec', grade7: 84, grade8: 90, grade9: 72 },
 ];
 
-const PerformanceChart = () => {
+const PerformanceChart = ({ data: apiData }) => {
+  let chartData = defaultData;
+  if (apiData && apiData.labels && apiData.labels.length > 0 && apiData.datasets && apiData.datasets.length > 0) {
+    chartData = apiData.labels.map((label, index) => {
+      const point = { name: label };
+      apiData.datasets.forEach(dataset => {
+        point[dataset.label] = dataset.data[index] || 0;
+      });
+      return point;
+    });
+  }
   return (
     <div className="bg-white p-6 rounded-[24px] shadow-sm border border-gray-50 flex flex-col h-full min-h-[400px]">
       <div className="flex items-center justify-between mb-8 px-1">
@@ -41,7 +51,7 @@ const PerformanceChart = () => {
 
       <div className="flex-1 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barGap={6}>
+          <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barGap={6}>
             <CartesianGrid strokeDasharray="0" vertical={false} stroke="#f1f5f9" />
             <XAxis
               dataKey="name"

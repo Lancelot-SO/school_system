@@ -14,7 +14,8 @@ import {
   ChevronDown,
   Search,
   Settings,
-  Bell
+  Bell,
+  User as UserIcon
 } from 'lucide-react';
 
 // Using the megaphone image from the public folder
@@ -50,7 +51,7 @@ const navItems = [
   { icon: FileText, label: 'Notice Board', path: '/notice-board' },
 ];
 
-const Sidebar = ({ isOpen, isCollapsed, onClose }) => {
+const Sidebar = ({ isOpen, isCollapsed, onClose, user }) => {
   const location = useLocation();
   const [openDropdown, setOpenDropdown] = useState(null);
 
@@ -98,16 +99,22 @@ const Sidebar = ({ isOpen, isCollapsed, onClose }) => {
         <div className="flex items-center justify-between bg-gray-50/50 p-4 rounded-[24px] border border-gray-100 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <img 
-                src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80" 
-                alt="User" 
-                className="w-11 h-11 rounded-xl border-2 border-white shadow-md object-cover"
-              />
+              {user?.profile_picture ? (
+                <img 
+                  src={user.profile_picture} 
+                  alt="User" 
+                  className="w-11 h-11 rounded-xl border-2 border-white shadow-md object-cover"
+                />
+              ) : (
+                <div className="w-11 h-11 rounded-xl border-2 border-white shadow-md bg-gray-100 flex items-center justify-center text-gray-400">
+                  <UserIcon size={24} />
+                </div>
+              )}
               <span className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-white"></span>
             </div>
             <div className="flex flex-col">
-              <span className="text-[14px] font-extrabold text-primary-blue leading-tight">Oscar Hansen</span>
-              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Admin Account</span>
+              <span className="text-[14px] font-extrabold text-primary-blue leading-tight">{user?.name || 'Oscar Hansen'}</span>
+              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{user?.role ? `${user.role} Account` : 'Admin Account'}</span>
             </div>
           </div>
           <div className="flex items-center gap-2">

@@ -5,6 +5,27 @@ import Header from './Header';
 const MainLayout = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch('https://lumi-api.artfricastudio.com/api/me', {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Accept': 'application/json'
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setUser(data.data || data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch user data", err);
+      }
+    };
+    fetchUser();
+  }, []);
 
   // Handle sidebar and mobile menu on resize
   useEffect(() => {
@@ -36,6 +57,7 @@ const MainLayout = ({ children }) => {
         isOpen={isMobileMenuOpen} 
         isCollapsed={isSidebarCollapsed} 
         onClose={closeMobileMenu}
+        user={user}
       />
       
       {/* Mobile Overlay */}
@@ -53,6 +75,7 @@ const MainLayout = ({ children }) => {
         <Header 
           isMenuOpen={isMobileMenuOpen}
           onMenuClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+          user={user}
         />
         <main className="px-4 md:px-8 pb-12">
           {children}

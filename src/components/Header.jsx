@@ -1,7 +1,7 @@
-import { Search, Settings, Bell, Menu, X } from 'lucide-react';
+import { Search, Settings, Bell, Menu, X, User } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
-const Header = ({ onMenuClick, isMenuOpen }) => {
+const Header = ({ onMenuClick, isMenuOpen, user }) => {
   const location = useLocation();
 
   const getPageTitle = () => {
@@ -76,14 +76,20 @@ const Header = ({ onMenuClick, isMenuOpen }) => {
           </div>
           <div className="flex items-center gap-3 pl-6 border-l border-gray-100">
             <div className="text-right">
-              <p className="text-[13px] font-extrabold text-primary-blue leading-none mb-0.5">Oscar Hansen</p>
-              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Admin</p>
+              <p className="text-[13px] font-extrabold text-primary-blue leading-none mb-0.5">{user?.name || 'Oscar Hansen'}</p>
+              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{user?.role || 'Admin'}</p>
             </div>
-            <img
-              src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
-              alt="User"
-              className="w-10 h-10 rounded-xl border-2 border-white shadow-md object-cover"
-            />
+            {user?.profile_picture ? (
+              <img
+                src={user.profile_picture}
+                alt="User"
+                className="w-10 h-10 rounded-xl border-2 border-white shadow-md object-cover"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-xl border-2 border-white shadow-md bg-gray-50 flex items-center justify-center text-gray-400">
+                <User size={20} />
+              </div>
+            )}
           </div>
         </div>
       </div>
