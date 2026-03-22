@@ -11,26 +11,37 @@ import Attendance from './pages/Attendance';
 import FeesCollection from './pages/FeesCollection';
 import Expenses from './pages/Expenses';
 import NoticeBoard from './pages/NoticeBoard';
+import SchoolDetails from './pages/onboarding/SchoolDetails';
+import UploadBulkStudents from './pages/onboarding/UploadBulkStudents';
+import UploadBulkTeachers from './pages/onboarding/UploadBulkTeachers';
 
 function App() {
   return (
     <Router>
-      <MainLayout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/inbox" element={<Inbox />} />
-          <Route path="/calendar" element={<Calendar />} />
-          <Route path="/teachers" element={<Teachers />} />
-          <Route path="/student-details" element={<StudentDetails />} />
-          <Route path="/students/add" element={<AddStudent />} />
-          <Route path="/attendance" element={<Attendance />} />
-          <Route path="/finance/fees-collection" element={<FeesCollection />} />
-          <Route path="/finance/expenses" element={<Expenses />} />
-          <Route path="/notice-board" element={<NoticeBoard />} />
+      <Routes>
+        {/* Onboarding Routes - No Sidebar */}
+        <Route path="/onboarding/school-details" element={<SchoolDetails />} />
+        <Route path="/onboarding/upload-students" element={<UploadBulkStudents />} />
+        <Route path="/onboarding/upload-teachers" element={<UploadBulkTeachers />} />
 
-
-        </Routes>
-      </MainLayout>
+        {/* Dashboard Routes - With Sidebar */}
+        <Route path="*" element={
+          <MainLayout>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/inbox" element={<Inbox />} />
+              <Route path="/calendar" element={<Calendar />} />
+              <Route path="/teachers" element={<Teachers />} />
+              <Route path="/student-details" element={<StudentDetails />} />
+              <Route path="/students/add" element={<AddStudent />} />
+              <Route path="/attendance" element={<Attendance />} />
+              <Route path="/finance/fees-collection" element={<FeesCollection />} />
+              <Route path="/finance/expenses" element={<Expenses />} />
+              <Route path="/notice-board" element={<NoticeBoard />} />
+            </Routes>
+          </MainLayout>
+        } />
+      </Routes>
     </Router>
   );
 }
