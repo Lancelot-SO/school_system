@@ -1,15 +1,11 @@
 import React from 'react';
-import OnboardingHeader from './OnboardingHeader';
-import OnboardingFooter from './OnboardingFooter';
 
 const OnboardingLayout = ({ children }) => {
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex flex-col font-inter">
-      <OnboardingHeader />
-      <main className="flex-1 flex flex-col items-center justify-start py-12 px-4 md:px-8 max-w-7xl mx-auto w-full">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#dfe9f3] to-[#ffffff] p-4 sm:p-8 font-sans">
+      <div className="flex flex-col lg:flex-row w-full max-w-6xl bg-white/60 backdrop-blur-xl rounded-[2.5rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] overflow-hidden border border-white/40 p-3 sm:p-4 relative">
         {children}
-      </main>
-      <OnboardingFooter />
+      </div>
     </div>
   );
 };

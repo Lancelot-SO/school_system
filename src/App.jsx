@@ -11,6 +11,7 @@ import Attendance from './pages/Attendance';
 import FeesCollection from './pages/FeesCollection';
 import Expenses from './pages/Expenses';
 import NoticeBoard from './pages/NoticeBoard';
+import SchoolProfileSettings from './pages/admin/SchoolProfileSettings';
 import SchoolDetails from './pages/onboarding/SchoolDetails';
 import UploadBulkStudents from './pages/onboarding/UploadBulkStudents';
 import UploadBulkTeachers from './pages/onboarding/UploadBulkTeachers';
@@ -59,6 +60,7 @@ function App() {
                 <Route path="admin/finance/fees-collection" element={<FeesCollection />} />
                 <Route path="admin/finance/expenses" element={<Expenses />} />
                 <Route path="admin/notice-board" element={<NoticeBoard />} />
+                <Route path="admin/school-profile" element={<SchoolProfileSettings />} />
                 
                 {/* Placeholder Routes for other roles */}
                 <Route path="teacher/dashboard" element={<Dashboard />} />

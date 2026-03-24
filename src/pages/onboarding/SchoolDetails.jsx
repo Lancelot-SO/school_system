@@ -1,22 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Camera, MapPin, Plus, ArrowRight, Lightbulb, ShieldCheck } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import StepIndicator from '../../components/onboarding/StepIndicator';
 import OnboardingLayout from '../../components/onboarding/OnboardingLayout';
-import schoolPreview from '../../assets/onboarding/school_building_preview.png';
 
 const SchoolDetails = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { school_name: initialSchoolName, admin_name } = location.state || {};
 
-  const [awards, setAwards] = useState(['Award Name 01', 'Award Name 02']);
+  const [awards, setAwards] = useState(['']);
   const [formData, setFormData] = useState({
     school_name: initialSchoolName || '',
     school_location: '',
     description: ''
   });
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
+  useEffect(() => {
+    const fetchSchoolProfile = async () => {
+      try {
+        const response = await fetch('https://lumi-api.artfricastudio.com/api/school/profile', {
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          const p = data.data || data;
+          
+          setFormData(prev => ({
+            ...prev,
+            school_name: p.school_name || p.name || prev.school_name,
+            school_location: p.school_location || p.location || prev.school_location,
+            description: p.description || prev.description
+          }));
+          
+          if (p.awards && Array.isArray(p.awards) && p.awards.length > 0) {
+            setAwards(p.awards.map(a => typeof a === 'object' ? a.name : a));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch initial setup data:", err);
+      }
+    };
+    
+    fetchSchoolProfile();
+  }, []);
+
+  const logoInputRef = useRef(null);
+  const [logoPreview, setLogoPreview] = useState(null);
+  const [logoFile, setLogoFile] = useState(null);
+
+  const handleLogoUploadClick = () => {
+    logoInputRef.current?.click();
+  };
+
+  const handleLogoChange = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      setLogoFile(file);
+      setLogoPreview(URL.createObjectURL(file));
+    }
+  };
 
   const addAward = () => setAwards([...awards, '']);
 
@@ -33,23 +82,49 @@ const SchoolDetails = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     try {
-      await fetch('https://lumi-api.artfricastudio.com/api/school/profile', {
+      const submitData = new FormData();
+      submitData.append('school_name', formData.school_name);
+      submitData.append('school_location', formData.school_location);
+      submitData.append('description', formData.description);
+      
+      const filteredAwards = awards.filter(a => a.trim() !== '');
+      filteredAwards.forEach((award, index) => {
+        submitData.append(`awards[${index}]`, award);
+      });
+      
+      if (logoFile) {
+        submitData.append('logo', logoFile);
+      }
+
+      // Laravel expects PUT for this route, but PHP drops multipart/form-data files sent over raw PUT.
+      // The secure workaround is to POST the binary data and pass '_method=PUT' to trigger Laravel's method spoofing.
+      submitData.append('_method', 'PUT');
+
+      const response = await fetch('https://lumi-api.artfricastudio.com/api/school/profile', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         },
-        body: JSON.stringify({
-          ...formData,
-          awards: awards.filter(a => a.trim() !== '')
-        })
+        body: submitData
       });
+
+      let data = {};
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.indexOf("application/json") !== -1) {
+        data = await response.json();
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || data.error || 'Failed to sync school profile.');
+      }
+
       navigate('/onboarding/upload-students', { state: { school_name: formData.school_name, admin_name } });
     } catch (err) {
-      console.error(err);
-      navigate('/onboarding/upload-students', { state: { school_name: formData.school_name, admin_name } });
+      console.error("Submission error:", err);
+      setError(err.message || "A network or server error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -57,140 +132,149 @@ const SchoolDetails = () => {
 
   return (
     <OnboardingLayout>
-      <div className="flex flex-col lg:flex-row gap-16 lg:gap-24 items-start w-full">
-        {/* Left Form Section */}
-        <div className="flex-1 w-full max-w-2xl">
-          <StepIndicator currentStep={1} totalSteps={3} title="School Details" />
+      {/* Left Form Section */}
+      <div className="flex-1 lg:w-[55%] p-6 sm:p-10 lg:p-14 flex flex-col justify-center bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative z-10 w-full overflow-y-auto">
+        <StepIndicator currentStep={1} totalSteps={3} title="School Profile" />
 
-          <form onSubmit={handleSubmit} className="space-y-8 animate-in fade-in slide-in-from-left-4 duration-700 delay-100">
-            {/* School Logo Upload */}
-            <div className="space-y-3">
-              <label className="text-sm font-bold text-slate-700">School Logo</label>
-              <div className="w-48 h-32 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center bg-white hover:border-blue-400 hover:bg-blue-50/50 transition-all cursor-pointer group">
-                <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center text-slate-400 group-hover:text-blue-500 group-hover:scale-110 transition-all mb-2">
-                  <Camera size={24} />
-                </div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-blue-600">Upload Branding</span>
+        {error && (
+          <div className="mb-6 mt-4 bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-[1rem] text-sm font-medium animate-in fade-in slide-in-from-top-2" role="alert">
+             {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in slide-in-from-left-4 duration-700 delay-100">
+          {/* School Logo Upload */}
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-gray-900 ml-1">Institutional Logo</label>
+            <input 
+              type="file" 
+              ref={logoInputRef} 
+              onChange={handleLogoChange} 
+              className="hidden" 
+              accept="image/png, image/jpeg, image/jpg, image/webp"
+            />
+            <div 
+              onClick={handleLogoUploadClick}
+              className="w-40 h-28 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center bg-gray-50/50 hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer group relative overflow-hidden"
+            >
+              {logoPreview ? (
+                 <img src={logoPreview} alt="Logo preview" className="absolute inset-0 w-full h-full object-cover group-hover:opacity-50 transition-opacity" />
+              ) : null}
+              <div className={`w-10 h-10 ${logoPreview ? 'bg-white/80 backdrop-blur-sm shadow-md' : 'bg-white shadow-sm'} rounded-full flex items-center justify-center text-gray-400 group-hover:text-blue-500 transition-all mb-1.5 relative z-10`}>
+                <Camera size={20} />
               </div>
+              <span className={`text-[10px] font-bold ${logoPreview ? 'text-gray-800 bg-white/80 px-2 rounded-full backdrop-blur-sm' : 'text-gray-400'} uppercase tracking-widest group-hover:text-blue-600 relative z-10`}>
+                {logoPreview ? 'Change Logo' : 'Upload Logo'}
+              </span>
             </div>
+          </div>
 
-            {/* School Name */}
-            <div className="space-y-3">
-              <label className="text-sm font-bold text-slate-700">School Name</label>
-              <input 
-                type="text" 
-                name="school_name"
-                value={formData.school_name}
-                onChange={handleInputChange}
-                required
-                placeholder="e.g. St. James International Academy"
-                className="w-full px-5 py-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all outline-none text-slate-900 font-medium placeholder:text-slate-400"
-              />
-            </div>
+          {/* School Name */}
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-gray-900 ml-1">School Name</label>
+            <input 
+              type="text" 
+              name="school_name"
+              value={formData.school_name}
+              onChange={handleInputChange}
+              required
+              placeholder="e.g. St. James Academy"
+              className="appearance-none block w-full px-5 py-3.5 border border-gray-200/80 rounded-full text-[15px] text-gray-900 bg-gray-50/50 hover:bg-gray-50 focus:bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200"
+            />
+          </div>
 
-            {/* Awards & Recognition */}
-            <div className="space-y-4">
-              <label className="text-sm font-bold text-slate-700">Awards & Recognition</label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* School Location */}
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-gray-900 ml-1">Primary Campus</label>
+                <div className="relative group">
+                  <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-black transition-colors" size={20} />
+                  <input 
+                    type="text" 
+                    name="school_location"
+                    value={formData.school_location}
+                    onChange={handleInputChange}
+                    placeholder="City, State"
+                    className="appearance-none block w-full pl-12 pr-5 py-3.5 border border-gray-200/80 rounded-full text-[15px] text-gray-900 bg-gray-50/50 hover:bg-gray-50 focus:bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200"
+                  />
+                </div>
+              </div>
+
+              {/* Awards Header */}
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-gray-900 ml-1 flex justify-between items-center mr-2">
+                  Awards
+                  <button type="button" onClick={addAward} className="text-blue-600 hover:text-blue-800 p-1">
+                    <Plus size={16} strokeWidth={3} />
+                  </button>
+                </label>
                 {awards.map((award, idx) => (
                   <input 
                     key={idx}
                     type="text" 
-                    placeholder="Award Name"
+                    placeholder="e.g. Blue Ribbon 2023"
                     value={award}
                     onChange={(e) => handleAwardChange(idx, e.target.value)}
-                    className="w-full px-5 py-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all outline-none text-slate-900 font-medium placeholder:text-slate-400"
+                    className="appearance-none block w-full px-5 py-3.5 border border-gray-200/80 rounded-full text-[15px] text-gray-900 bg-gray-50/50 hover:bg-gray-50 focus:bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200 mb-2"
                   />
                 ))}
               </div>
-              <button 
-                type="button" 
-                onClick={addAward}
-                className="flex items-center gap-2 text-blue-600 font-bold text-[11px] uppercase tracking-wider hover:gap-3 transition-all"
-              >
-                <Plus size={16} strokeWidth={3} />
-                Add Another Award
-              </button>
-            </div>
-
-            {/* School Location */}
-            <div className="space-y-3 relative">
-              <label className="text-sm font-bold text-slate-700">School Location(s)</label>
-              <div className="relative group">
-                <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors" size={20} />
-                <input 
-                  type="text" 
-                  name="school_location"
-                  value={formData.school_location}
-                  onChange={handleInputChange}
-                  placeholder="Enter primary campus address"
-                  className="w-full pl-14 pr-5 py-4 bg-slate-100 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all outline-none text-slate-900 font-medium placeholder:text-slate-400"
-                />
-              </div>
-            </div>
-
-            {/* School Description */}
-            <div className="space-y-3">
-              <label className="text-sm font-bold text-slate-700">School Description</label>
-              <textarea 
-                rows={5}
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                placeholder="Tell us about your institution's history, mission, and values..."
-                className="w-full px-6 py-5 bg-slate-100 border-none rounded-3xl focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all outline-none text-slate-900 font-medium placeholder:text-slate-400 resize-none"
-              />
-            </div>
-
-            {/* Submit Button */}
-            <button 
-              type="submit"
-              disabled={loading}
-              className={`mt-8 flex items-center gap-3 bg-blue-700 text-white px-10 py-5 rounded-[20px] font-bold text-base hover:bg-blue-800 hover:shadow-2xl hover:shadow-blue-200 transition-all hover:-translate-y-1 active:translate-y-0 group ${loading ? 'opacity-70 cursor-not-allowed' : ''}`}
-            >
-              {loading ? 'Saving...' : 'Next Step'}
-              <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} strokeWidth={2.5} />
-            </button>
-          </form>
-        </div>
-
-        {/* Right Info Section */}
-        <div className="w-full lg:w-[400px] space-y-8 animate-in fade-in slide-in-from-right-4 duration-700 delay-300">
-          {/* Tip Card */}
-          <div className="bg-white rounded-[32px] p-8 shadow-xl shadow-slate-200/50 border border-slate-50">
-            <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 mb-6">
-              <Lightbulb size={24} />
-            </div>
-            <h3 className="text-xl font-extrabold text-slate-900 mb-4">
-              {admin_name ? `Welcome, ${admin_name}!` : 'Institutional Tip'}
-            </h3>
-            <p className="text-sm text-slate-500 leading-relaxed mb-6 font-medium">
-              A clear and compelling description helps parents and students understand {formData.school_name ? formData.school_name : "your school"}'s unique pedagogical approach. Focus on your <span className="text-blue-600 font-bold underline decoration-2 underline-offset-4">Key Differentiators</span>.
-            </p>
-            
-            <div className="space-y-3">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Live Preview</span>
-              <div className="relative rounded-2xl overflow-hidden aspect-4/3 group cursor-pointer">
-                <img 
-                  src={schoolPreview} 
-                  alt="School Preview" 
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 grayscale group-hover:grayscale-0"
-                />
-                <div className="absolute inset-0 bg-linear-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
-            </div>
           </div>
 
-          {/* Trust Factor Card */}
-          <div className="bg-[#fff1f1] rounded-[24px] p-6 flex items-start gap-4 border border-rose-100 transition-transform hover:scale-[1.02]">
-            <div className="w-10 h-10 bg-rose-600 rounded-xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-rose-200">
-              <ShieldCheck size={20} />
+          {/* School Description */}
+          <div className="space-y-2">
+            <label className="text-sm font-bold text-gray-900 ml-1">Mission & Values</label>
+            <textarea 
+              rows={3}
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+              placeholder="Tell us about your institution's history, mission, and distinct pedagogical approaches..."
+              className="appearance-none block w-full px-5 py-4 border border-gray-200/80 rounded-3xl text-[15px] text-gray-900 bg-gray-50/50 hover:bg-gray-50 focus:bg-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent transition-all duration-200 resize-none"
+            />
+          </div>
+
+          {/* Submit Button */}
+          <div className="pt-4">
+             <button 
+               type="submit"
+               disabled={loading}
+               className={`w-full flex items-center justify-center gap-2 py-4 px-4 rounded-full text-[15px] font-semibold text-white bg-[#111111] hover:bg-black focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black transition-all duration-200 shadow-[0_4px_14px_0_rgba(0,0,0,0.25)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.23)] ${loading ? 'opacity-75 cursor-not-allowed' : ''}`}
+             >
+               {loading ? 'Saving Profile...' : 'Next Step'} <ArrowRight size={18} />
+             </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Right Info Section */}
+      <div className="hidden lg:flex lg:w-[45%] ml-2 relative rounded-[2.2rem] bg-indigo-50 flex-col items-center justify-center p-12 overflow-hidden">
+        {/* Abstract Background Element */}
+        <div className="absolute top-0 right-0 p-12 text-indigo-200/40 opacity-30 transform translate-x-12 -translate-y-8 rotate-12 scale-150 pointer-events-none">
+           <ShieldCheck size={280} />
+        </div>
+
+        <div className="relative z-10 w-full max-w-sm space-y-8">
+          {/* Tip Card */}
+          <div className="bg-white/60 backdrop-blur-md rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white">
+            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-blue-600 mb-6 shadow-sm border border-blue-50">
+              <Lightbulb size={24} />
+            </div>
+            <h3 className="text-xl font-extrabold text-gray-900 mb-3 tracking-tight">
+              {admin_name ? `Welcome, ${admin_name}!` : 'Onboarding Tip'}
+            </h3>
+            <p className="text-[14px] text-gray-600 leading-relaxed font-medium">
+              A clear and compelling portfolio helps align your staff and faculty seamlessly. Ensure your <span className="text-blue-600 font-bold underline decoration-2 underline-offset-4">branding and mottos</span> accurately reflect your school's vision.
+            </p>
+          </div>
+
+          <div className="bg-white/60 backdrop-blur-md rounded-3xl p-6 border border-white flex items-center gap-4 shadow-sm group cursor-pointer transition-all hover:bg-white/80">
+            <div className="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center text-rose-500 shrink-0">
+               <ShieldCheck size={20} />
             </div>
             <div>
-              <h4 className="text-[13px] font-black text-rose-900 uppercase tracking-wider mb-1">Trust Factor</h4>
-              <p className="text-[12px] italic text-rose-800/80 leading-relaxed">
-                "90% of applicants choose schools with a complete profile."
-              </p>
+               <h4 className="text-[13px] font-black text-gray-900 uppercase tracking-wider mb-0.5">Trust Factor</h4>
+               <p className="text-[12px] text-gray-500 font-medium">Verified domains get prioritized support routing.</p>
             </div>
           </div>
         </div>

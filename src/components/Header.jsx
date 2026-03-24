@@ -1,8 +1,23 @@
-import { Search, Settings, Bell, Menu, X, User } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { Search, Settings, Bell, Menu, X, User, Building2 } from 'lucide-react';
+import { useLocation, Link, useParams } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
 
 const Header = ({ onMenuClick, isMenuOpen, user }) => {
   const location = useLocation();
+  const { school_slug } = useParams();
+  
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const settingsRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (settingsRef.current && !settingsRef.current.contains(event.target)) {
+        setIsSettingsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const getPageTitle = () => {
     const path = location.pathname;
@@ -65,9 +80,27 @@ const Header = ({ onMenuClick, isMenuOpen, user }) => {
             />
           </div>
           <div className="flex items-center gap-2.5">
-            <button className="p-2.5 bg-gray-50 rounded-xl text-gray-400 hover:text-primary-pink transition-all">
-              <Settings size={18} />
-            </button>
+            <div className="relative" ref={settingsRef}>
+              <button 
+                onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+                className={`p-2.5 rounded-xl transition-all ${isSettingsOpen ? 'bg-primary-pink/10 text-primary-pink' : 'bg-gray-50 text-gray-400 hover:text-primary-pink'}`}
+              >
+                <Settings size={18} />
+              </button>
+
+              {isSettingsOpen && (
+                <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-gray-100 py-2 z-50 animate-in fade-in slide-in-from-top-2">
+                  <Link 
+                    to={`/${school_slug}/admin/school-profile`}
+                    onClick={() => setIsSettingsOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-[14px] font-bold text-gray-700 hover:bg-gray-50 hover:text-primary-pink transition-colors"
+                  >
+                    <Building2 size={16} />
+                    School Details
+                  </Link>
+                </div>
+              )}
+            </div>
             <button className="p-2.5 bg-gray-50 rounded-xl text-gray-400 hover:text-primary-pink transition-all relative">
               <Bell size={18} />
               <span className="absolute top-2 right-2 w-1.5 h-1.5 bg-primary-pink rounded-full border-2 border-white"></span>
