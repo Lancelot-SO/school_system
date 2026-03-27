@@ -21,7 +21,7 @@ const EarningsChart = () => {
   return (
     <div className="bg-white p-6 rounded-[24px] shadow-sm border border-gray-50 flex flex-col h-full min-h-[400px]">
       <div className="flex items-center justify-between mb-8 px-1">
-        <h3 className="text-[15px] font-extrabold text-[#1a365d]">Earnings</h3>
+        <h3 className="text-[15px] font-extrabold text-primary-blue">Earnings</h3>
         <div className="flex items-center gap-2">
           <select className="bg-[#dcf0f4] border-none text-[13px] font-bold text-primary-blue rounded-xl px-4 py-2.5 focus:ring-1 focus:ring-primary-pink/20 outline-none cursor-pointer border-transparent transition-all">
             <option>Last Year</option>
@@ -32,11 +32,11 @@ const EarningsChart = () => {
 
       <div className="flex items-center gap-6 mb-6 px-1">
         <div className="flex items-center gap-2">
-            <div className="w-3.5 h-0.5 bg-[#1a365d] rounded-full"></div>
+            <div className="w-3.5 h-0.5 bg-primary-blue rounded-full"></div>
             <span className="text-[13px] font-bold text-gray-400">Earnings</span>
         </div>
         <div className="flex items-center gap-2">
-            <div className="w-3.5 h-0.5 bg-[#fbcfe8] rounded-full"></div>
+            <div className="w-3.5 h-0.5 bg-promo-btn rounded-full"></div>
             <span className="text-[13px] font-bold text-gray-400">Expenses</span>
         </div>
       </div>
@@ -66,7 +66,7 @@ const EarningsChart = () => {
             axisLine={false} 
             tickLine={false} 
             tick={{ fill: '#9ca3af', fontSize: 11, fontWeight: 600 }} 
-            tickFormatter={(value) => `$${Math.abs(value)}K`}
+            tickFormatter={(value) => `GHS ${Math.abs(value)}K`}
             domain={[-6, 6]}
             ticks={[-6, -3, 0, 3, 6]}
             dx={-10}
@@ -88,8 +88,8 @@ const EarningsChart = () => {
                               <div className="w-3.5 h-0.5 rounded-full" style={{ backgroundColor: item.name === 'earnings' ? '#1a365d' : '#fbcfe8' }}></div>
                               <span className="text-[12px] font-bold text-gray-400 capitalize">{item.name}</span>
                             </div>
-                            <span className={`text-[13px] font-extrabold ${item.name === 'earnings' ? 'text-[#1a365d]' : 'text-[#d81b60]'}`}>
-                              ${Math.abs(item.value).toLocaleString()}
+                            <span className={`text-[13px] font-extrabold ${item.name === 'earnings' ? 'text-primary-blue' : 'text-primary-pink'}`}>
+                              GHS {Math.abs(item.value).toLocaleString()}
                             </span>
                           </div>
                         ))}

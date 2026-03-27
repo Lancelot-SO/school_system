@@ -29,7 +29,7 @@ const notices = [
   {
     title: 'Field Trip Consent Forms Due',
     tags: ['Announcement'],
-    audience: 'Grade 7 & 8 Students',
+    audience: 'Class 7 & 8 Students',
     date: 'March 14, 2035',
     creator: 'Class Advisor',
     imageUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Trip'
@@ -64,7 +64,7 @@ const NoticeBoard = ({ className = "" }) => {
   return (
     <div className={`bg-white p-6 rounded-[24px] shadow-sm border border-gray-50 flex flex-col ${className}`}>
       <div className="flex items-center justify-between mb-8 px-1">
-        <h2 className="text-[15px] font-extrabold text-[#1a365d]">Notice Board</h2>
+        <h2 className="text-[15px] font-extrabold text-primary-blue">Notice Board</h2>
         <div className="flex items-center gap-4">
           <span className="text-[13px] font-bold text-gray-400">Sort by:</span>
           <select className="bg-[#dcf0f4] border-none text-[13px] font-bold text-primary-blue rounded-xl px-4 py-2.5 focus:ring-1 focus:ring-primary-pink/20 outline-none cursor-pointer border-transparent transition-all">
@@ -81,10 +81,10 @@ const NoticeBoard = ({ className = "" }) => {
             className="flex flex-col sm:flex-row items-center gap-4 sm:gap-12 p-3 hover:bg-gray-50 rounded-xl transition-all cursor-pointer group border-b border-gray-50 last:border-0"
           >
             {/* Title & Category */}
-            <div className="flex items-center gap-4 flex-[2] w-full min-w-[280px]">
+            <div className="flex items-center gap-4 flex-2 w-full min-w-[280px]">
               <img src={notice.imageUrl} alt={notice.title} className="w-10 h-10 rounded-full object-cover" />
               <div className="flex flex-col gap-1">
-                <h4 className="text-[13px] font-bold text-[#1a365d] group-hover:text-primary-pink transition-colors line-clamp-1">
+                <h4 className="text-[13px] font-bold text-primary-blue group-hover:text-primary-pink transition-colors line-clamp-1">
                   {notice.title}
                 </h4>
                 <div className="flex items-center gap-2">
@@ -100,7 +100,7 @@ const NoticeBoard = ({ className = "" }) => {
                 </div>
               </div>
             </div>
-            <div className="flex flex-row items-center gap-8 flex-[3] w-full justify-between sm:justify-start">
+            <div className="flex flex-row items-center gap-8 flex-3 w-full justify-between sm:justify-start">
               {/* Audience */}
               <div className="flex flex-col gap-0.5 min-w-[80px]">
                 <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Audience</span>

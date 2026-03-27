@@ -19,8 +19,8 @@ const GenderChart = ({ data: apiData }) => {
         <h3 className="text-[15px] font-extrabold text-[#1a365d]">Students by Gender</h3>
         <div className="flex items-center gap-2">
           <select className="bg-[#dcf0f4] border-none text-[13px] font-bold text-primary-blue rounded-xl px-4 py-2 focus:ring-1 focus:ring-primary-pink/20 outline-none cursor-pointer border-transparent transition-all">
-            <option>Grade 9</option>
-            <option>All Grades</option>
+            <option>Class 9</option>
+            <option>All Classes</option>
           </select>
         </div>
       </div>
