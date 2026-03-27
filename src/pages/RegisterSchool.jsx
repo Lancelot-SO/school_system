@@ -49,6 +49,9 @@ const RegisterSchool = () => {
       if (data.token) {
         localStorage.setItem('token', data.token);
       }
+      if (data.school && data.school.slug) {
+        localStorage.setItem('active_school_slug', data.school.slug);
+      }
 
       setTimeout(() => {
         navigate('/onboarding/school-details', { 
