@@ -19,13 +19,17 @@ const Dashboard = () => {
 
   React.useEffect(() => {
     const fetchDashboardData = async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
       try {
         const response = await fetch('https://lumi-api.artfricastudio.com/api/dashboard', {
           headers: {
             'Accept': 'application/json',
             'Authorization': `Bearer ${localStorage.getItem('token')}`
-          }
+          },
+          signal: controller.signal
         });
+        clearTimeout(timeoutId);
         if (response.ok) {
           const result = await response.json();
           // Assuming typical Laravel payload wrapped in 'data' or direct object
@@ -34,7 +38,11 @@ const Dashboard = () => {
           console.error("Failed to fetch dashboard data");
         }
       } catch (err) {
-        console.error("Error fetching dashboard data:", err);
+        if (err.name === 'AbortError') {
+          console.error("Dashboard fetch timed out");
+        } else {
+          console.error("Error fetching dashboard data:", err);
+        }
       } finally {
         setLoading(false);
       }
@@ -61,7 +69,7 @@ const Dashboard = () => {
   return (
     <div className="flex flex-col xl:flex-row gap-6 py-6 items-stretch">
       {/* Main Content Area */}
-      <div className="flex-[3] flex flex-col gap-6 min-w-0">
+      <div className="flex-3 flex flex-col gap-6 min-w-0">
         
         {/* Dynamic Onboarding Reminder Banner */}
         <OnboardingProgress setupData={data?.onboarding} />
@@ -102,8 +110,8 @@ const Dashboard = () => {
       <div className="flex-1 hidden xl:flex flex-col gap-6 min-w-[320px]">
         <CalendarCard />
         <UpcomingEvents data={data?.events} />
-        <ToDoList data={data?.to_do_list} />
-        <RecentActivity className="flex-1" />
+        <ToDoList data={data?.to_do_list} className="flex-1 min-h-0 overflow-y-auto" />
+        <RecentActivity className="flex-1 min-h-0 overflow-y-auto" />
       </div>
 
       {/* Mobile/Tablet Footer */}

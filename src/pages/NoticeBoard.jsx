@@ -35,14 +35,14 @@ const noticesData = [
     id: 'NB-1001',
     category: 'Academic',
     title: 'Midterm Exam Timetable Released',
-    audience: 'Students (Grade 7-9)',
+    audience: 'Students (Class 7-9)',
     postDate: 'Mar 5, 2035',
     expDate: 'Mar 8, 2035',
     createdBy: 'Academic Office',
     status: 'Active',
     views: 542,
     image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&w=800&q=80',
-    content: 'The official midterm exam timetable for grades 7, 8, and 9 has been released. Students are advised to check their class schedules and prepare accordingly. Exams will begin on March 20, 2035 and continue until March 28, 2035. Detailed subject-wise schedules are available in the attachments section below.',
+    content: 'The official midterm exam timetable for classes 7, 8, and 9 has been released. Students are advised to check their class schedules and prepare accordingly. Exams will begin on March 20, 2035 and continue until March 28, 2035. Detailed subject-wise schedules are available in the attachments section below.',
     attachment: { name: 'Midterm_Timetable_2035.pdf', size: '2.4 MB' }
   },
   {
@@ -90,8 +90,8 @@ const noticesData = [
   {
     id: 'NB-1005',
     category: 'Finance',
-    title: 'Fee Payment Reminder (Grade 9)',
-    audience: 'Grade 9 Students & Parents',
+    title: 'Fee Payment Reminder (Class 9)',
+    audience: 'Class 9 Students & Parents',
     postDate: 'Mar 4, 2035',
     expDate: 'Mar 8, 2035',
     createdBy: 'Finance Office',

@@ -3,12 +3,12 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { MoreHorizontal } from 'lucide-react';
 
 const defaultData = [
-  { name: 'Jul', grade7: 82, grade8: 88, grade9: 78 },
-  { name: 'Aug', grade7: 75, grade8: 95, grade9: 86 },
-  { name: 'Sep', grade7: 78, grade8: 92, grade9: 82 },
-  { name: 'Oct', grade7: 82, grade8: 85, grade9: 78, active: true },
-  { name: 'Nov', grade7: 76, grade8: 88, grade9: 84 },
-  { name: 'Dec', grade7: 84, grade8: 90, grade9: 72 },
+  { name: 'Jul', class7: 82, class8: 88, class9: 78 },
+  { name: 'Aug', class7: 75, class8: 95, class9: 86 },
+  { name: 'Sep', class7: 78, class8: 92, class9: 82 },
+  { name: 'Oct', class7: 82, class8: 85, class9: 78, active: true },
+  { name: 'Nov', class7: 76, class8: 88, class9: 84 },
+  { name: 'Dec', class7: 84, class8: 90, class9: 72 },
 ];
 
 const PerformanceChart = ({ data: apiData }) => {
@@ -36,16 +36,16 @@ const PerformanceChart = ({ data: apiData }) => {
 
       <div className="flex items-center gap-6 mb-6 px-1">
         <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-[3px] bg-[#d1eff6]"></div>
-            <span className="text-[13px] font-bold text-gray-400">Grade 7</span>
+            <div className="w-3.5 h-0.5 rounded-full bg-[#d1eff6]"></div>
+            <span className="text-[13px] font-bold text-gray-400">Class 7</span>
         </div>
         <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-[3px] bg-[#fbcfe8]"></div>
-            <span className="text-[13px] font-bold text-gray-400">Grade 8</span>
+            <div className="w-3.5 h-0.5 rounded-full bg-[#fbcfe8]"></div>
+            <span className="text-[13px] font-bold text-gray-400">Class 8</span>
         </div>
         <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-[3px] bg-[#1a365d]"></div>
-            <span className="text-[13px] font-bold text-gray-400">Grade 9</span>
+            <div className="w-3.5 h-0.5 rounded-full bg-primary-blue"></div>
+            <span className="text-[13px] font-bold text-gray-400">Class 9</span>
         </div>
       </div>
 
@@ -93,9 +93,9 @@ const PerformanceChart = ({ data: apiData }) => {
             {/* Background highlight for active month */}
             <ReferenceArea x1="Oct" x2="Oct" fill="#f8fafc" fillOpacity={1} strokeOpacity={0} />
 
-            <Bar dataKey="grade7" name="Grade 7" fill="#d1eff6" radius={[4, 4, 0, 0]} barSize={8} />
-            <Bar dataKey="grade8" name="Grade 8" fill="#fbcfe8" radius={[4, 4, 0, 0]} barSize={8} />
-            <Bar dataKey="grade9" name="Grade 9" fill="#1a365d" radius={[4, 4, 0, 0]} barSize={8} />
+            <Bar dataKey="class7" name="Class 7" fill="#d1eff6" radius={[4, 4, 0, 0]} barSize={8} />
+            <Bar dataKey="class8" name="Class 8" fill="#fbcfe8" radius={[4, 4, 0, 0]} barSize={8} />
+            <Bar dataKey="class9" name="Class 9" fill="#1a365d" radius={[4, 4, 0, 0]} barSize={8} />
           </BarChart>
         </ResponsiveContainer>
       </div>

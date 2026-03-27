@@ -24,7 +24,7 @@ const AddStudent = () => {
     dob: '2023-08-21',
     gender: 'Female',
     admissionNumber: 'ADM-1009',
-    grade: '7',
+    class: '7',
     section: 'B',
     enrollmentDate: '2035-03-05',
     previousSchool: '',
@@ -355,10 +355,14 @@ const AddStudent = () => {
             
             <div className="grid grid-cols-2 gap-6 mb-8">
               <div className="flex flex-col gap-2">
-                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Grade</label>
+                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Class</label>
                 <div className="relative">
-                  <select className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-[13px] font-extrabold text-primary-blue focus:outline-none appearance-none">
-                    <option>{formData.grade}</option>
+                  <select 
+                    className="w-full bg-gray-50 border-none rounded-xl px-4 py-3.5 text-[13px] font-bold text-gray-700 focus:ring-1 focus:ring-primary-pink/20 outline-none mt-2 transition-all cursor-pointer"
+                    value={formData.class}
+                    onChange={(e) => setFormData({ ...formData, class: e.target.value })}
+                  >
+                    <option>{formData.class}</option>
                     <option>8</option>
                     <option>9</option>
                   </select>

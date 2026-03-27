@@ -113,12 +113,12 @@ const Expenses = () => {
                    axisLine={false} 
                    tickLine={false} 
                    tick={{ fontSize: 11, fontWeight: 700, fill: '#94a3b8' }}
-                   tickFormatter={(value) => `$${value/1000}K`}
+                   tickFormatter={(value) => `GHS ${value/1000}K`}
                 />
                 <Tooltip 
                   cursor={{fill: '#f8fafc', opacity: 0.4}}
                   contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', padding: '12px 16px'}}
-                  formatter={(value) => [`$${value.toLocaleString()}`, 'Amount']}
+                  formatter={(value) => [`GHS ${value.toLocaleString()}`, 'Amount']}
                 />
                 <Bar 
                   dataKey="amount" 
@@ -138,7 +138,7 @@ const Expenses = () => {
           <div className="absolute top-[108px] left-[230px] flex flex-col items-center">
              <div className="bg-white px-3 py-1.5 rounded-xl shadow-lg border border-gray-50 flex flex-col items-center">
                 <span className="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">April 2035</span>
-                <span className="text-[12px] font-black text-primary-gray">$73,250</span>
+                <span className="text-[12px] font-black text-primary-gray">GHS 73,250</span>
                 <div className="w-2 h-2 bg-white border-b border-r border-gray-50 rotate-45 -mb-2 mt-1"></div>
              </div>
           </div>
@@ -177,9 +177,9 @@ const Expenses = () => {
                     <td className="py-4">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-6 rounded-full bg-sky-50 flex items-center justify-center text-sky-500">
-                          <DollarSign size={10} strokeWidth={3} />
+                          <span className="text-[8px] font-black">GHS</span>
                         </div>
-                        <span className="text-[12px] font-black text-primary-gray">${row.amount}</span>
+                        <span className="text-[12px] font-black text-primary-gray">GHS {row.amount}</span>
                       </div>
                       <p className="text-[10px] font-bold text-gray-400 pl-8">{row.desc}</p>
                     </td>
@@ -253,7 +253,7 @@ const Expenses = () => {
                     <span className="text-[13px] font-black text-primary-gray">{item.name}</span>
                   </div>
                   <div className="flex items-end justify-between">
-                     <span className="text-[12px] font-bold text-gray-400">${item.value.toLocaleString()}</span>
+                     <span className="text-[12px] font-bold text-gray-400">GHS {item.value.toLocaleString()}</span>
                      <span className="text-[14px] font-black text-primary-blue">{item.percent}</span>
                   </div>
                 </div>
@@ -307,7 +307,7 @@ const Expenses = () => {
                   <td className="py-5 text-[13px] font-bold text-gray-500">{row.desc}</td>
                   <td className="py-5 text-[12px] font-bold text-gray-400 text-center">{row.qty}</td>
                   <td className="py-5 text-right">
-                    <span className="text-[14px] font-black text-rose-500">${row.amount.toLocaleString()}</span>
+                    <span className="text-[14px] font-black text-rose-500">GHS {row.amount.toLocaleString()}</span>
                   </td>
                 </tr>
               ))}
