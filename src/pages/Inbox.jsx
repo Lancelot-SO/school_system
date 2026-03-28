@@ -59,7 +59,7 @@ const messages = [
     sender: 'Finance Office',
     initials: 'FO',
     subject: 'Reminder: Fee Payment Deadline',
-    snippet: 'Kindly ensure all pending Grade 9 fee payments are completed by March 15.',
+    snippet: 'Kindly ensure all pending Class 9 fee payments are completed by March 15.',
     time: '11:00 AM',
     active: true,
     label: 'bg-cyan-200'
@@ -321,7 +321,7 @@ const Inbox = () => {
           <div className="space-y-3.5 text-[12.5px] font-bold text-gray-600 leading-relaxed max-w-xl">
             <p>Dear Admin,</p>
             <p>
-              This is a gentle reminder that all pending Grade 9 student fee payments must be completed by March 
+              This is a gentle reminder that all pending Class 9 student fee payments must be completed by March 
               15, 2035. Kindly check the finance section of the dashboard to verify payments and follow up with 
               students or parents if required.
             </p>

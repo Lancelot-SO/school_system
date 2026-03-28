@@ -47,10 +47,10 @@ const tableData = [
     name: 'Michael Chen',
     class: '7A',
     fees: [
-      { category: 'Tuition Fee', amount: '$1,200', date: 'Mar 15, 2035', status: 'Paid' },
-      { category: 'Books & Supplies', amount: '$250', date: 'Mar 20, 2035', status: 'Pending' },
-      { category: 'Activities', amount: '$300', date: 'Mar 25, 2035', status: 'Paid' },
-      { category: 'Miscellaneous', amount: '$150', date: 'Mar 30, 2035', status: 'Partially Paid' },
+      { category: 'Tuition Fee', amount: 'GHS 1,200', date: 'Mar 15, 2035', status: 'Paid' },
+      { category: 'Books & Supplies', amount: 'GHS 250', date: 'Mar 20, 2035', status: 'Pending' },
+      { category: 'Activities', amount: 'GHS 300', date: 'Mar 25, 2035', status: 'Paid' },
+      { category: 'Miscellaneous', amount: 'GHS 150', date: 'Mar 30, 2035', status: 'Partially Paid' },
     ]
   },
   {
@@ -58,10 +58,10 @@ const tableData = [
     name: 'Emma Williams',
     class: '7B',
     fees: [
-      { category: 'Tuition Fee', amount: '$1,200', date: 'Mar 12, 2035', status: 'Partially Paid' },
-      { category: 'Books & Supplies', amount: '$200', date: 'Mar 18, 2035', status: 'Paid' },
-      { category: 'Activities', amount: '$250', date: 'Mar 20, 2035', status: 'Pending' },
-      { category: 'Miscellaneous', amount: '$100', date: 'Mar 28, 2035', status: 'Paid' },
+      { category: 'Tuition Fee', amount: 'GHS 1,200', date: 'Mar 12, 2035', status: 'Partially Paid' },
+      { category: 'Books & Supplies', amount: 'GHS 200', date: 'Mar 18, 2035', status: 'Paid' },
+      { category: 'Activities', amount: 'GHS 250', date: 'Mar 20, 2035', status: 'Pending' },
+      { category: 'Miscellaneous', amount: 'GHS 100', date: 'Mar 28, 2035', status: 'Paid' },
     ]
   },
   {
@@ -69,10 +69,10 @@ const tableData = [
     name: 'Rajesh Kumar',
     class: '7C',
     fees: [
-      { category: 'Tuition Fee', amount: '$1,200', date: 'Mar 10, 2035', status: 'Overdue' },
-      { category: 'Books & Supplies', amount: '$220', date: 'Mar 15, 2035', status: 'Pending' },
-      { category: 'Activities', amount: '$300', date: 'Mar 22, 2035', status: 'Paid' },
-      { category: 'Miscellaneous', amount: '$150', date: 'Mar 29, 2035', status: 'Partially Paid' },
+      { category: 'Tuition Fee', amount: 'GHS 1,200', date: 'Mar 10, 2035', status: 'Overdue' },
+      { category: 'Books & Supplies', amount: 'GHS 220', date: 'Mar 15, 2035', status: 'Pending' },
+      { category: 'Activities', amount: 'GHS 300', date: 'Mar 22, 2035', status: 'Paid' },
+      { category: 'Miscellaneous', amount: 'GHS 150', date: 'Mar 29, 2035', status: 'Partially Paid' },
     ]
   },
   {
@@ -80,10 +80,10 @@ const tableData = [
     name: 'Hannah Lee',
     class: '8A',
     fees: [
-      { category: 'Tuition Fee', amount: '$1,200', date: 'Mar 14, 2035', status: 'Paid' },
-      { category: 'Books & Supplies', amount: '$250', date: 'Mar 19, 2035', status: 'Overdue' },
-      { category: 'Activities', amount: '$280', date: 'Mar 24, 2035', status: 'Paid' },
-      { category: 'Miscellaneous', amount: '$120', date: 'Mar 27, 2035', status: 'Pending' },
+      { category: 'Tuition Fee', amount: 'GHS 1,200', date: 'Mar 14, 2035', status: 'Paid' },
+      { category: 'Books & Supplies', amount: 'GHS 250', date: 'Mar 19, 2035', status: 'Overdue' },
+      { category: 'Activities', amount: 'GHS 280', date: 'Mar 24, 2035', status: 'Paid' },
+      { category: 'Miscellaneous', amount: 'GHS 120', date: 'Mar 27, 2035', status: 'Pending' },
     ]
   },
   {
@@ -91,10 +91,10 @@ const tableData = [
     name: 'Thomas Green',
     class: '8B',
     fees: [
-      { category: 'Tuition Fee', amount: '$1,200', date: 'Mar 18, 2035', status: 'Paid' },
-      { category: 'Books & Supplies', amount: '$230', date: 'Mar 20, 2035', status: 'Partially Paid' },
-      { category: 'Activities', amount: '$270', date: 'Mar 25, 2035', status: 'Pending' },
-      { category: 'Miscellaneous', amount: '$150', date: 'Mar 30, 2035', status: 'Paid' },
+      { category: 'Tuition Fee', amount: 'GHS 1,200', date: 'Mar 18, 2035', status: 'Paid' },
+      { category: 'Books & Supplies', amount: 'GHS 230', date: 'Mar 20, 2035', status: 'Partially Paid' },
+      { category: 'Activities', amount: 'GHS 270', date: 'Mar 25, 2035', status: 'Pending' },
+      { category: 'Miscellaneous', amount: 'GHS 150', date: 'Mar 30, 2035', status: 'Paid' },
     ]
   }
 ];
@@ -112,7 +112,7 @@ const StatCard = ({ icon: Icon, label, value, theme }) => {
         <Icon className="w-7 h-7 text-white" />
       </div>
       <div className="flex flex-col">
-        <span className="text-[28px] font-black leading-tight">${value}</span>
+        <span className="text-[28px] font-black leading-tight">GHS {value}</span>
         <span className="text-[13px] font-bold opacity-80 tracking-wide uppercase">{label}</span>
       </div>
     </div>
@@ -188,7 +188,7 @@ const FeesCollection = () => {
                   axisLine={false} 
                   tickLine={false} 
                   tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }} 
-                  tickFormatter={(val) => `$${val/1000}K`}
+                  tickFormatter={(val) => `GHS ${val/1000}K`}
                 />
                 <Tooltip 
                   content={({ active, payload, label }) => {
@@ -196,7 +196,7 @@ const FeesCollection = () => {
                       return (
                         <div className="bg-primary-blue text-white px-4 py-2 rounded-xl shadow-lg border border-white/10 text-center animate-in zoom-in-95 duration-200">
                           <p className="text-[9px] font-bold opacity-70 uppercase tracking-widest mb-0.5">{label} 2035</p>
-                          <p className="text-[14px] font-extrabold">${payload[0].value.toLocaleString()}</p>
+                          <p className="text-[14px] font-extrabold">GHS {payload[0].value.toLocaleString()}</p>
                         </div>
                       );
                     }
@@ -236,7 +236,7 @@ const FeesCollection = () => {
                   <div className="flex flex-col">
                     <span className="text-[13px] font-extrabold text-primary-blue">{item.label}</span>
                     <span className="text-[11px] font-bold text-gray-400">
-                      <span className="text-primary-blue">${item.collected.toLocaleString()}</span>/${item.total.toLocaleString()} collected
+                      <span className="text-primary-blue">GHS {item.collected.toLocaleString()}</span>/{item.total.toLocaleString()} collected
                     </span>
                   </div>
                   <span className="text-[14px] font-black text-primary-blue tracking-tight">{item.percentage}%</span>
