@@ -18,7 +18,8 @@ const MainLayout = ({ children }) => {
         });
         if (res.ok) {
           const data = await res.json();
-          setUser(data.data || data);
+          // API returns { user: { name, role, ... } }
+          setUser(data.user || data.data || data);
         }
       } catch (err) {
         console.error("Failed to fetch user data", err);

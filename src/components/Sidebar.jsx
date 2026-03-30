@@ -25,13 +25,23 @@ const navItemsRaw = [
   { icon: LayoutGrid, label: 'Dashboard', path: '/dashboard' },
   { icon: Mail, label: 'Inbox', path: '/inbox' },
   { icon: Calendar, label: 'Calendar', path: '/calendar' },
-  { icon: Users, label: 'Teachers', path: '/teachers' },
+  { 
+    icon: Users, 
+    label: 'Teachers', 
+    path: '/teachers',
+    hasDropdown: true,
+    subItems: [
+      { label: 'Teacher\'s page', path: '/teachers' },
+      { label: 'Add a teacher', path: '/teachers/add' }
+    ]
+  },
   { 
     icon: UserCircle2, 
     label: 'Students', 
     path: '/students', 
     hasDropdown: true,
     subItems: [
+      { label: 'Student\'s page', path: '/students' },
       { label: 'Student Details', path: '/student-details' },
       { label: 'Add Student', path: '/students/add' }
     ]
