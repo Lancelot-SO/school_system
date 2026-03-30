@@ -5,6 +5,8 @@ import Dashboard from './pages/Dashboard';
 import Inbox from './pages/Inbox';
 import Calendar from './pages/Calendar';
 import Teachers from './pages/Teachers';
+import AddTeacher from './pages/AddTeacher';
+import Students from './pages/Students';
 import StudentDetails from './pages/StudentDetails';
 import AddStudent from './pages/AddStudent';
 import Attendance from './pages/Attendance';
@@ -54,6 +56,8 @@ function App() {
                 <Route path="admin/inbox" element={<Inbox />} />
                 <Route path="admin/calendar" element={<Calendar />} />
                 <Route path="admin/teachers" element={<Teachers />} />
+                <Route path="admin/teachers/add" element={<AddTeacher />} />
+                <Route path="admin/students" element={<Students />} />
                 <Route path="admin/student-details" element={<StudentDetails />} />
                 <Route path="admin/students/add" element={<AddStudent />} />
                 <Route path="admin/attendance" element={<Attendance />} />
