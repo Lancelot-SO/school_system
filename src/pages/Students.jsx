@@ -11,7 +11,8 @@ import {
   MoreVertical,
   Edit2,
   Trash2,
-  LayoutGrid
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import {
   ComposedChart,
@@ -354,23 +355,23 @@ const Students = () => {
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button 
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="p-2 text-gray-400 hover:bg-gray-50 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-100 text-gray-400 hover:bg-gray-50 hover:text-primary-blue transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <LayoutGrid size={18} className="rotate-90 scale-x-[-1]" />
+              <ChevronLeft size={16} strokeWidth={2.5} />
             </button>
             
             {[...Array(totalPages)].map((_, idx) => (
               <button 
                 key={idx}
                 onClick={() => handlePageChange(idx + 1)}
-                className={`w-10 h-10 flex items-center justify-center rounded-xl font-extrabold text-sm transition-colors ${
+                className={`w-9 h-9 flex items-center justify-center rounded-xl font-extrabold text-sm transition-all ${
                   currentPage === idx + 1 
-                    ? 'bg-primary-pink text-white shadow-lg shadow-primary-pink/20' 
-                    : 'bg-sky-50 text-sky-600 hover:bg-sky-100'
+                    ? 'bg-primary-pink text-white shadow-md shadow-primary-pink/25 scale-105' 
+                    : 'text-gray-500 hover:bg-gray-50 hover:text-primary-blue'
                 }`}
               >
                 {idx + 1}
@@ -380,9 +381,9 @@ const Students = () => {
             <button 
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="p-2 text-sky-600 hover:bg-sky-50 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-100 text-sky-500 hover:bg-sky-50 hover:text-sky-600 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <LayoutGrid size={18} className="-rotate-90" />
+              <ChevronRight size={16} strokeWidth={2.5} />
             </button>
           </div>
         </div>
