@@ -7,17 +7,21 @@ import {
   Filter, 
   ChevronDown, 
   Plus, 
-  LayoutGrid, 
+  LayoutGrid,
+  ChevronLeft,
+  ChevronRight,
   MoreHorizontal,
   Mail,
   Phone,
   Linkedin,
   Instagram,
   MessageCircle,
-  MoreVertical
+  MoreVertical,
+  X
 } from 'lucide-react';
 import {
   ComposedChart,
+  LineChart,
   Line,
   Area,
   XAxis,
@@ -59,27 +63,82 @@ const Teachers = () => {
   const [sortBy, setSortBy] = useState('Latest');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(8);
+  
+  const [selectedTeacher, setSelectedTeacher] = useState(null);
+
+  const getSparklineData = (teacher) => {
+    // Rely on new advanced graphs pipeline if available
+    if (teacher.attendance_graphs?.sparkline_7_days) {
+      return teacher.attendance_graphs.sparkline_7_days.map((day) => {
+        let val = 0;
+        if (day.status === 'present') {
+          val = 90;
+          if (day.clock_in) {
+             const hour = parseInt(day.clock_in.split(':')[0], 10);
+             if (hour >= 8) val = 60; // Show sharp dip for being late (after 08:00)
+             else val = 95 - (parseInt(day.clock_in.split(':')[1] || '0', 10) % 15); // Organic organic jitter
+          }
+        } else if (day.status === 'weekend') {
+          val = 50; // Neutral floating baseline for weekends
+        }
+        return { name: day.date, value: val };
+      });
+    }
+
+    // Fallback to legacy tracking array
+    if (!teacher.attendance_stats?.recent_7_days_trend) {
+      return Array.from({ length: 7 }).map((_, i) => ({ name: `Day ${i + 1}`, value: 0 }));
+    }
+    return teacher.attendance_stats.recent_7_days_trend.map((isPresent, i) => ({
+      name: `Day ${i + 1}`,
+      value: isPresent ? 100 : 0
+    }));
+  };
 
   useEffect(() => {
-    const fetchTeachers = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch('https://lumi-api.artfricastudio.com/api/profiles/teachers', {
+        const token = localStorage.getItem('token');
+        const options = {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            'Authorization': `Bearer ${token}`,
             'Accept': 'application/json'
           }
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setTeacherData(data.data || []);
+        };
+
+        const [profilesRes, graphsRes] = await Promise.all([
+          fetch('https://lumi-api.artfricastudio.com/api/profiles/teachers', options),
+          fetch('https://lumi-api.artfricastudio.com/api/attendance/teachers/graphs', options).catch(() => null)
+        ]);
+
+        if (profilesRes.ok) {
+          const profilesData = await profilesRes.json();
+          let combinedData = profilesData.data || [];
+
+          if (graphsRes && graphsRes.ok) {
+            const graphsData = await graphsRes.json();
+            if (graphsData.success && graphsData.data) {
+              const graphMap = new Map();
+              graphsData.data.forEach(item => {
+                graphMap.set(item.teacher_id, item.graphs);
+              });
+              
+              combinedData = combinedData.map(teacher => ({
+                ...teacher,
+                attendance_graphs: graphMap.get(teacher.id) || null
+              }));
+            }
+          }
+          
+          setTeacherData(combinedData);
         }
       } catch (err) {
-        console.error("Failed to fetch teachers", err);
+        console.error("Failed to fetch teachers profiles or attendance graphs", err);
       } finally {
         setIsLoading(false);
       }
     };
-    fetchTeachers();
+    fetchData();
   }, []);
 
   const filteredTeachers = teacherData.filter(t => 
@@ -110,11 +169,15 @@ const Teachers = () => {
 
   // --- Dynamic Data Generation ---
 
+  const fullTimeCount = teacherData.filter(t => t.profile?.employment_status === 'full-time').length;
+  const partTimeCount = teacherData.filter(t => t.profile?.employment_status === 'part-time').length;
+  const substituteCount = teacherData.filter(t => t.profile?.employment_status === 'substitute').length;
+
   const dynamicStats = [
     { label: 'Total Teachers', count: teacherData.length, icon: Users, bgColor: 'bg-white', iconColor: 'text-white', iconBg: 'bg-[#1a365d]' },
-    { label: 'Full-Time Teacher', count: 0, icon: Clock, bgColor: 'bg-white', iconColor: 'text-[#d81b60]', iconBg: 'bg-[#fae8ff]' },
-    { label: 'Part-Time Teacher', count: 0, icon: Clock, bgColor: 'bg-white', iconColor: 'text-[#0ea5e9]', iconBg: 'bg-[#e0faff]' },
-    { label: 'Substitute Teacher', count: 0, icon: RefreshCw, bgColor: 'bg-white', iconColor: 'text-[#6366f1]', iconBg: 'bg-[#eef2ff]' },
+    { label: 'Full-Time Teacher', count: fullTimeCount, icon: Clock, bgColor: 'bg-white', iconColor: 'text-[#d81b60]', iconBg: 'bg-[#fae8ff]' },
+    { label: 'Part-Time Teacher', count: partTimeCount, icon: Clock, bgColor: 'bg-white', iconColor: 'text-[#0ea5e9]', iconBg: 'bg-[#e0faff]' },
+    { label: 'Substitute Teacher', count: substituteCount, icon: RefreshCw, bgColor: 'bg-white', iconColor: 'text-[#6366f1]', iconBg: 'bg-[#eef2ff]' },
   ];
 
   const departmentCounts = {};
@@ -141,20 +204,27 @@ const Teachers = () => {
       percentage: totalSubjects > 0 ? `${Math.round((value / totalSubjects) * 100)}%` : '0%'
     }));
 
-  const dynamicWorkloadData = teacherData.slice(0, 8).map(t => ({
-    name: t.name,
-    classes: 0,
-    hours: 0,
-    extra: 0
-  }));
+  let dayStats = { 'Mon': { p: 0, t: 0 }, 'Tue': { p: 0, t: 0 }, 'Wed': { p: 0, t: 0 }, 'Thu': { p: 0, t: 0 }, 'Fri': { p: 0, t: 0 } };
+  teacherData.forEach(t => {
+    if (t.attendance_graphs?.sparkline_7_days) {
+      t.attendance_graphs.sparkline_7_days.forEach(day => {
+        const d = new Date(day.date);
+        const dayLabel = d.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
+        if (dayStats[dayLabel] !== undefined) {
+          dayStats[dayLabel].t++;
+          if (day.status === 'present') {
+            dayStats[dayLabel].p++;
+          }
+        }
+      });
+    }
+  });
 
-  const dynamicAttendanceData = [
-    { name: 'Mon', value: 0, barValue: 0 },
-    { name: 'Tue', value: 0, barValue: 0, highlight: true },
-    { name: 'Wed', value: 0, barValue: 0 },
-    { name: 'Thu', value: 0, barValue: 0 },
-    { name: 'Fri', value: 0, barValue: 0 },
-  ];
+  const dynamicAttendanceData = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].map(day => {
+    const stat = dayStats[day];
+    const percentage = stat.t > 0 ? Math.round((stat.p / stat.t) * 100) : 0;
+    return { name: day, value: percentage, barValue: percentage, highlight: stat.t > 0 && percentage < 85 }; 
+  });
 
   return (
     <div className="flex flex-col gap-8 py-8 animate-in fade-in duration-500 overflow-x-hidden pb-12">
@@ -222,62 +292,66 @@ const Teachers = () => {
           </div>
         </div>
 
-        {/* Workload Distribution */}
+        {/* 30-Day Attendance Heatmap Calendar */}
         <div className="lg:col-span-6 bg-white rounded-[40px] p-6 shadow-lg shadow-gray-200/40 border border-white flex flex-col">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-extrabold text-primary-blue tracking-tight">Workload Distribution</h3>
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-6 shrink-0">
+            <h3 className="text-lg font-extrabold text-primary-blue tracking-tight">30-Day Attendance Heatmap</h3>
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1 bg-sky-50 px-3 py-1.5 rounded-xl border border-sky-100 cursor-pointer hover:bg-sky-100 transition-colors">
-                <span className="text-[11px] font-bold text-sky-600">Science</span>
-                <ChevronDown size={14} className="text-sky-400" />
+              <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm border border-white"></div><span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Present</span></div>
+              <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-red-400 shadow-sm border border-white"></div><span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Absent</span></div>
+              <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-gray-200 border border-gray-100"></div><span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Weekend</span></div>
+            </div>
+          </div>
+          
+          <div className="flex-1 w-full overflow-x-auto custom-scrollbar pb-2 relative">
+            <div className="min-w-[800px] flex flex-col gap-3 h-full justify-center">
+              <div className="flex ml-[120px] justify-between text-[10px] font-extrabold text-gray-300 uppercase tracking-widest pr-4">
+                {Array.from({ length: 30 }).map((_, i) => (
+                   <span key={i} className={`flex-1 text-center ${(i + 1) % 5 === 0 ? '' : 'opacity-0 sm:opacity-100'}`}>D{i + 1}</span>
+                ))}
               </div>
-              <div className="flex items-center gap-1 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors">
-                <span className="text-[11px] font-bold text-primary-blue">Weekly</span>
-                <ChevronDown size={14} className="text-gray-400" />
+              <div className="flex flex-col gap-3">
+                {teacherData.slice(0, 7).map((teacher, i) => (
+                  <div key={i} className="flex items-center group cursor-pointer" onClick={() => setSelectedTeacher(teacher)}>
+                    <div className="w-[120px] shrink-0 pr-4 flex items-center gap-3">
+                      <img src={teacher.profile_picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(teacher.name)}&background=random`} alt={teacher.name} className="w-6 h-6 rounded-full object-cover border border-gray-100" />
+                      <span className="text-[12px] font-extrabold text-primary-blue group-hover:text-sky-500 transition-colors truncate">
+                        {teacher.name.split(' ')[0]} {teacher.name.split(' ')[1] ? teacher.name.split(' ')[1][0] + '.' : ''}
+                      </span>
+                    </div>
+                    <div className="flex-1 flex justify-between gap-1.5 pr-4">
+                      {teacher.attendance_graphs?.heat_map_30_days ? (
+                        teacher.attendance_graphs.heat_map_30_days.map((dayObj, dayIdx) => (
+                          <div 
+                            key={dayIdx} 
+                            className={`flex-1 h-6 rounded-md transition-all duration-300 hover:scale-[1.2] shadow-sm ${
+                              dayObj.status === 'present' ? 'bg-emerald-400/90 hover:bg-emerald-500 hover:shadow-emerald-400/30' :
+                              dayObj.status === 'absent' ? 'bg-red-400/90 hover:bg-red-500 hover:shadow-red-400/30' :
+                              'bg-gray-100/80 border border-gray-200/50'
+                            }`}
+                            title={`${teacher.name} - ${dayObj.date}: ${dayObj.status.toUpperCase()}`}
+                          ></div>
+                        ))
+                      ) : (
+                        Array.from({ length: 30 }).map((_, dayIdx) => (
+                          <div key={dayIdx} className="flex-1 h-6 rounded-md bg-gray-50 border border-gray-100"></div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {teacherData.length === 0 && (
+                  <div className="py-12 flex items-center justify-center">
+                    <span className="text-xs font-bold text-gray-400">Loading graphical array...</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-          <div className="h-[250px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dynamicWorkloadData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 9, fontWeight: 700, fill: '#94a3b8' }} 
-                  dy={10}
-                  interval={0}
-                  tickFormatter={(val) => val.split(' ')[0]}
-                />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }}
-                />
-                <Tooltip 
-                  cursor={{ fill: '#f8fafc' }}
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
-                />
-                <Bar dataKey="classes" stackId="a" fill="var(--color-promo-btn)" radius={[0, 0, 0, 0]} barSize={24} />
-                <Bar dataKey="hours" stackId="a" fill="#bae6fd" radius={[0, 0, 0, 0]} barSize={24} />
-                <Bar dataKey="extra" stackId="a" fill="#1a365d" radius={[6, 6, 0, 0]} barSize={24} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="flex items-center justify-center gap-6 mt-4">
-            <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-promo-btn"></div>
-              <span className="text-[10px] font-bold text-gray-500">Total Classes</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-[#bae6fd]"></div>
-              <span className="text-[10px] font-bold text-gray-500">Teaching Hours</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full bg-primary-blue"></div>
-              <span className="text-[10px] font-bold text-gray-500">Extra Duties</span>
-            </div>
+          
+          <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-50 shrink-0">
+            <span className="text-[11px] font-bold text-gray-400 italic">Showing top tracked teachers for the past 30 days</span>
+            <button className="text-[11px] font-extrabold text-sky-500 hover:text-sky-600 transition-colors uppercase tracking-widest">Full History &rarr;</button>
           </div>
         </div>
 
@@ -418,73 +492,102 @@ const Teachers = () => {
           </div>
         </div>
 
-        {/* Teachers Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {isLoading ? (
-            <div className="col-span-full py-12 flex items-center justify-center">
-              <RefreshCw size={24} className="text-primary-pink animate-spin" />
-              <span className="ml-3 text-sm font-bold text-gray-500">Loading teachers...</span>
-            </div>
-          ) : currentTeachers.length > 0 ? (
-            currentTeachers.map((teacher, i) => (
-              <div key={i} className="bg-white border border-gray-100 rounded-[32px] p-6 hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-300 group relative flex flex-col justify-between h-full">
-                <div>
-                  <div className="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button className="p-1 hover:bg-gray-50 rounded-lg text-gray-400">
-                      <MoreVertical size={20} />
-                    </button>
-                  </div>
-                  
-                  <div className="flex flex-col items-center text-center mb-6">
-                    <div className="relative mb-4 shrink-0">
-                      <div className="w-20 h-20 rounded-full border-4 border-gray-50 p-1 group-hover:border-primary-pink/10 transition-colors">
-                        <img src={teacher.profile_picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(teacher.name)}&background=random`} alt={teacher.name} className="w-full h-full rounded-full object-cover" />
+        {/* Elegant Table */}
+        <div className="overflow-x-auto w-full custom-scrollbar pb-4">
+          <table className="w-full min-w-[900px]">
+            <thead>
+              <tr className="border-b border-gray-100 text-left">
+                <th className="pb-4 pl-4 text-[12px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">ID Info</th>
+                <th className="pb-4 pl-4 text-[12px] font-bold text-gray-400 uppercase tracking-widest">Teacher</th>
+                <th className="pb-4 text-[12px] font-bold text-gray-400 uppercase tracking-widest">Department</th>
+                <th className="pb-4 text-[12px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
+                <th className="pb-4 text-[12px] font-bold text-gray-400 uppercase tracking-widest">Attendance (7 Days)</th>
+                <th className="pb-4 pr-4 text-[12px] font-bold text-gray-400 uppercase tracking-widest text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {isLoading ? (
+                <tr>
+                  <td colSpan="6" className="py-12 text-center">
+                    <div className="flex items-center justify-center">
+                      <RefreshCw size={24} className="text-primary-pink animate-spin" />
+                      <span className="ml-3 text-sm font-bold text-gray-500">Loading teachers...</span>
+                    </div>
+                  </td>
+                </tr>
+              ) : currentTeachers.length > 0 ? (
+                currentTeachers.map((teacher, i) => (
+                  <tr key={i} className="hover:bg-gray-50/50 transition-colors group cursor-pointer" onClick={() => setSelectedTeacher(teacher)}>
+                    <td className="py-4 pl-4">
+                      <span className="text-[13px] font-extrabold text-primary-blue bg-blue-50/50 px-3 py-1.5 rounded-xl border border-blue-100/50">
+                        {teacher.id.substring(0, 8)}
+                      </span>
+                    </td>
+                    <td className="py-4 pl-4">
+                      <div className="flex items-center gap-4">
+                        <img src={teacher.profile_picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(teacher.name)}&background=random`} alt={teacher.name} className="w-10 h-10 rounded-[14px] object-cover border border-gray-100 shadow-sm" />
+                        <div>
+                          <p className="text-[14px] font-extrabold text-primary-blue leading-tight group-hover:text-sky-600 transition-colors">{teacher.name}</p>
+                          <p className="text-[11px] font-bold text-gray-400 mt-0.5">{teacher.email}</p>
+                        </div>
                       </div>
-                      <div className="absolute bottom-0 right-0 w-6 h-6 bg-green-500 border-4 border-white rounded-full"></div>
-                    </div>
-                    <h4 className="text-[17px] font-extrabold text-primary-blue leading-tight mb-1">{teacher.name}</h4>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">{teacher.id.substring(0, 8)}</span>
-                      <span className="w-1 h-1 rounded-full bg-gray-300 shrink-0"></span>
-                      <span className="text-[11px] font-bold text-sky-500 truncate max-w-[120px]">{teacher.profile?.subject_specialty ? teacher.profile.subject_specialty.split(',')[0] : 'General'}</span>
-                    </div>
-                    <span className="text-[10px] font-bold text-gray-400 px-3 py-1 bg-gray-50 rounded-full line-clamp-1 h-6 shrink-0">{teacher.profile?.subject_specialty || 'General Sub'}</span>
-                  </div>
-
-                  <div className="space-y-3 mb-6 p-4 bg-gray-50/50 rounded-2xl w-full">
-                    <div className="flex items-center gap-3 text-gray-500 overflow-hidden">
-                      <Phone size={14} className="text-sky-500 opacity-60 shrink-0" />
-                      <span className="text-[11px] font-bold tracking-tight truncate">{teacher.profile?.phone || 'N/A'}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-gray-500 overflow-hidden">
-                      <Mail size={14} className="text-gray-400 opacity-60 shrink-0" />
-                      <span className="text-[11px] font-bold tracking-tight truncate block" title={teacher.email}>{teacher.email}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between mt-auto pt-2 shrink-0">
-                  <div className="flex items-center gap-3">
-                    <a href={teacher.profile?.socials?.linkedin || '#'} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-sky-600 transition-colors">
-                      <Linkedin size={16} />
-                    </a>
-                    <a href={teacher.profile?.socials?.twitter || '#'} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-gray-900 transition-colors font-bold text-sm">X</a>
-                    <a href={teacher.profile?.socials?.facebook || '#'} target="_blank" rel="noreferrer" className="text-gray-400 hover:text-pink-600 transition-colors">
-                      <Instagram size={16} />
-                    </a>
-                  </div>
-                  <button className="flex items-center gap-2 bg-sky-50 text-sky-600 px-4 py-2 rounded-xl text-xs font-extrabold hover:bg-sky-100 transition-all border border-sky-100/50 shrink-0">
-                    <MessageCircle size={14} />
-                    <span>Message</span>
-                  </button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="col-span-full py-12 text-center text-gray-400 text-sm font-bold">
-              No teachers found.
-            </div>
-          )}
+                    </td>
+                    <td className="py-4">
+                      <span className="text-[12px] font-bold text-gray-500 bg-gray-50 px-3 py-1.5 rounded-xl block w-max max-w-[150px] truncate" title={teacher.profile?.subject_specialty || 'General Sub'}>
+                        {teacher.profile?.subject_specialty || 'General Sub'}
+                      </span>
+                    </td>
+                    <td className="py-4">
+                      {teacher.profile?.employment_status ? (() => {
+                        const s = teacher.profile.employment_status;
+                        const styles = {
+                          'full-time': 'bg-emerald-50 text-emerald-600 border-emerald-100',
+                          'part-time': 'bg-sky-50 text-sky-600 border-sky-100',
+                          'substitute': 'bg-violet-50 text-violet-600 border-violet-100',
+                        };
+                        const labels = { 'full-time': 'Full-Time', 'part-time': 'Part-Time', 'substitute': 'Substitute' };
+                        return (
+                          <span className={`text-[10px] font-extrabold uppercase tracking-wide px-2.5 py-1 rounded-full border shrink-0 ${styles[s] || 'bg-gray-50 text-gray-500 border-gray-100'}`}>
+                            {labels[s] || s}
+                          </span>
+                        );
+                      })() : (
+                        <span className="text-[10px] font-bold text-gray-400 px-3 py-1 bg-gray-50 rounded-full border border-gray-100">Pending</span>
+                      )}
+                    </td>
+                    <td className="py-4">
+                      <div className="flex items-center gap-2">
+                        <LineChart width={80} height={24} data={getSparklineData(teacher)}>
+                          <YAxis hide domain={[0, 100]} />
+                          <Line type="monotone" dataKey="value" stroke={
+                            teacher.profile?.employment_status === 'full-time' ? '#10b981' : 
+                            teacher.profile?.employment_status === 'part-time' ? '#0ea5e9' : '#8b5cf6'
+                          } strokeWidth={2.5} dot={false} isAnimationActive={false} />
+                        </LineChart>
+                      </div>
+                    </td>
+                    <td className="py-4 pr-4">
+                      <div className="flex items-center justify-end">
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); setSelectedTeacher(teacher); }}
+                          className="px-4 py-1.5 flex items-center gap-1.5 bg-sky-50 text-sky-600 border border-sky-100/50 rounded-xl text-[11px] font-extrabold hover:bg-sky-500 hover:text-white transition-all shadow-sm"
+                        >
+                          <span>View Profile</span>
+                          <ChevronRight size={14} strokeWidth={2.5} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className="py-12 text-center text-gray-400 text-sm font-bold">
+                    No teachers found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
         {/* Footer Area */}
@@ -512,23 +615,23 @@ const Teachers = () => {
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button 
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="p-2 text-gray-400 hover:bg-gray-50 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-100 text-gray-400 hover:bg-gray-50 hover:text-primary-blue transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <LayoutGrid size={18} className="rotate-90 scale-x-[-1]" />
+              <ChevronLeft size={16} strokeWidth={2.5} />
             </button>
             
             {[...Array(totalPages)].map((_, idx) => (
               <button 
                 key={idx}
                 onClick={() => handlePageChange(idx + 1)}
-                className={`w-10 h-10 flex items-center justify-center rounded-xl font-extrabold text-sm transition-colors ${
+                className={`w-9 h-9 flex items-center justify-center rounded-xl font-extrabold text-sm transition-all ${
                   currentPage === idx + 1 
-                    ? 'bg-primary-pink text-white shadow-lg shadow-primary-pink/20' 
-                    : 'bg-sky-50 text-sky-600 hover:bg-sky-100'
+                    ? 'bg-primary-pink text-white shadow-md shadow-primary-pink/25 scale-105' 
+                    : 'text-gray-500 hover:bg-gray-50 hover:text-primary-blue'
                 }`}
               >
                 {idx + 1}
@@ -538,9 +641,9 @@ const Teachers = () => {
             <button 
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="p-2 text-sky-600 hover:bg-sky-50 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-9 h-9 flex items-center justify-center rounded-xl border border-gray-100 text-sky-500 hover:bg-sky-50 hover:text-sky-600 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <LayoutGrid size={18} className="-rotate-90" />
+              <ChevronRight size={16} strokeWidth={2.5} />
             </button>
           </div>
         </div>
@@ -560,6 +663,90 @@ const Teachers = () => {
           <button className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-primary-blue hover:text-white transition-all"><Users size={14} /></button>
         </div>
       </div>
+      
+      {/* Teacher Profile Modal */}
+      {selectedTeacher && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-primary-blue/20 backdrop-blur-sm" onClick={() => setSelectedTeacher(null)}></div>
+          <div className="bg-white rounded-[32px] w-full max-w-lg p-8 relative z-10 shadow-2xl flex flex-col transform animate-in zoom-in-95 duration-200">
+            <button 
+              className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-full transition-colors"
+              onClick={() => setSelectedTeacher(null)}
+            >
+              <X size={20} />
+            </button>
+            
+            <div className="flex flex-col items-center text-center mb-8 mt-4">
+              <div className="relative mb-6">
+                <div className="w-28 h-28 rounded-full border-4 border-gray-50 p-1">
+                  <img src={selectedTeacher.profile_picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedTeacher.name)}&background=random`} alt={selectedTeacher.name} className="w-full h-full rounded-full object-cover" />
+                </div>
+                <div className="absolute bottom-1 right-1 w-7 h-7 bg-green-500 border-4 border-white rounded-full"></div>
+              </div>
+              <h3 className="text-2xl font-extrabold text-primary-blue leading-tight mb-2">{selectedTeacher.name}</h3>
+              <div className="flex items-center gap-2 justify-center mb-4">
+                <span className="text-[12px] font-bold text-gray-400 uppercase tracking-widest">{selectedTeacher.id.substring(0, 8)}</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
+                <span className="text-[12px] font-bold text-sky-500">{selectedTeacher.profile?.subject_specialty ? selectedTeacher.profile.subject_specialty.split(',')[0] : 'General'}</span>
+              </div>
+              
+              {selectedTeacher.profile?.employment_status ? (() => {
+                const s = selectedTeacher.profile.employment_status;
+                const styles = {
+                  'full-time': 'bg-emerald-50 text-emerald-600 border-emerald-100',
+                  'part-time': 'bg-sky-50 text-sky-600 border-sky-100',
+                  'substitute': 'bg-violet-50 text-violet-600 border-violet-100',
+                };
+                const labels = { 'full-time': 'Full-Time Teacher', 'part-time': 'Part-Time Teacher', 'substitute': 'Substitute Teacher' };
+                return (
+                  <div className={`text-[11px] font-extrabold uppercase tracking-wide px-4 py-1.5 rounded-full border ${styles[s] || 'bg-gray-50 text-gray-500 border-gray-100'}`}>
+                    {labels[s] || s}
+                  </div>
+                );
+              })() : (
+                <div className="text-[11px] font-extrabold uppercase tracking-wide px-4 py-1.5 rounded-full border border-gray-100 bg-gray-50 text-gray-500">
+                  Status Pending
+                </div>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 mb-8">
+              <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100/50 flex flex-col gap-2">
+                <div className="flex items-center gap-2 text-gray-400">
+                  <Phone size={14} />
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Phone Number</span>
+                </div>
+                <span className="text-sm font-extrabold text-primary-blue">{selectedTeacher.profile?.phone || 'Not provided'}</span>
+              </div>
+              <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100/50 flex flex-col gap-2">
+                <div className="flex items-center gap-2 text-gray-400">
+                  <Mail size={14} />
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Email Address</span>
+                </div>
+                <span className="text-sm font-extrabold text-primary-blue truncate" title={selectedTeacher.email}>{selectedTeacher.email}</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between pt-6 border-t border-gray-100">
+              <div className="flex items-center gap-4">
+                <a href={selectedTeacher.profile?.socials?.linkedin || '#'} target="_blank" rel="noreferrer" className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:text-sky-600 hover:bg-sky-50 transition-colors">
+                  <Linkedin size={18} />
+                </a>
+                <a href={selectedTeacher.profile?.socials?.twitter || '#'} target="_blank" rel="noreferrer" className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:text-gray-900 hover:bg-gray-200 transition-colors">
+                  <span className="font-bold">X</span>
+                </a>
+                <a href={selectedTeacher.profile?.socials?.facebook || '#'} target="_blank" rel="noreferrer" className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors">
+                  <Instagram size={18} />
+                </a>
+              </div>
+              <button className="flex items-center gap-2 bg-sky-500 text-white px-6 py-3 rounded-xl text-sm font-extrabold hover:bg-sky-600 active:scale-95 transition-all shadow-lg shadow-sky-500/20">
+                <MessageCircle size={16} />
+                <span>Message</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
