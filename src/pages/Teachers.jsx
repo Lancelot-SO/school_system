@@ -18,7 +18,12 @@ import {
   Instagram,
   MessageCircle,
   MoreVertical,
-  X
+  X,
+  Briefcase,
+  Building2,
+  GraduationCap,
+  Calendar as CalendarIcon,
+  ExternalLink
 } from 'lucide-react';
 import {
   ComposedChart,
@@ -702,79 +707,109 @@ const Teachers = () => {
       {selectedTeacher && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-primary-blue/20 backdrop-blur-sm" onClick={() => setSelectedTeacher(null)}></div>
-          <div className="bg-white rounded-[32px] w-full max-w-lg p-8 relative z-10 shadow-2xl flex flex-col transform animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-[32px] w-full max-w-xl p-8 relative z-10 shadow-2xl flex flex-col transform animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
             <button 
-              className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-full transition-colors"
+              className="absolute top-6 right-6 p-2 text-gray-400 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-full transition-colors z-10"
               onClick={() => setSelectedTeacher(null)}
             >
               <X size={20} />
             </button>
             
-            <div className="flex flex-col items-center text-center mb-8 mt-4">
-              <div className="relative mb-6">
-                <div className="w-28 h-28 rounded-full border-4 border-gray-50 p-1">
-                  <img src={selectedTeacher.profile_picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedTeacher.name)}&background=random`} alt={selectedTeacher.name} className="w-full h-full rounded-full object-cover" />
+            {/* Header */}
+            <div className="flex flex-col items-center text-center mb-6 mt-4">
+              <div className="relative mb-5">
+                <div className="w-24 h-24 rounded-full border-4 border-gray-50 p-1">
+                  <img src={selectedTeacher.profile_picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedTeacher.name || selectedTeacher.full_name || 'T')}&background=random`} alt={selectedTeacher.name} className="w-full h-full rounded-full object-cover" />
                 </div>
-                <div className="absolute bottom-1 right-1 w-7 h-7 bg-green-500 border-4 border-white rounded-full"></div>
+                <div className="absolute bottom-0 right-0 w-6 h-6 bg-green-500 border-3 border-white rounded-full"></div>
               </div>
-              <h3 className="text-2xl font-extrabold text-primary-blue leading-tight mb-2">{selectedTeacher.name}</h3>
-              <div className="flex items-center gap-2 justify-center mb-4">
-                <span className="text-[12px] font-bold text-gray-400 uppercase tracking-widest">{selectedTeacher.id.substring(0, 8)}</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-gray-300"></span>
-                <span className="text-[12px] font-bold text-sky-500">{selectedTeacher.profile?.subject_specialty ? selectedTeacher.profile.subject_specialty.split(',')[0] : 'General'}</span>
+              <h3 className="text-xl font-extrabold text-primary-blue leading-tight mb-1.5">{selectedTeacher.name || selectedTeacher.full_name}</h3>
+              <div className="flex items-center gap-2 justify-center mb-3">
+                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">{selectedTeacher.id?.substring(0, 8)}</span>
+                <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                <span className="text-[11px] font-bold text-sky-500">{selectedTeacher._raw?.department || selectedTeacher.profile?.subject_specialty?.split(',')[0] || 'General'}</span>
               </div>
               
-              {selectedTeacher.profile?.employment_status ? (() => {
-                const s = selectedTeacher.profile.employment_status;
+              {(() => {
+                const raw = selectedTeacher._raw;
+                const status = raw?.status || selectedTeacher.profile?.employment_status;
+                if (!status) return (
+                  <div className="text-[10px] font-extrabold uppercase tracking-wide px-3 py-1 rounded-full border border-gray-100 bg-gray-50 text-gray-500">Status Pending</div>
+                );
                 const styles = {
+                  'active': 'bg-emerald-50 text-emerald-600 border-emerald-100',
                   'full-time': 'bg-emerald-50 text-emerald-600 border-emerald-100',
                   'part-time': 'bg-sky-50 text-sky-600 border-sky-100',
+                  'inactive': 'bg-gray-100 text-gray-500 border-gray-200',
                   'substitute': 'bg-violet-50 text-violet-600 border-violet-100',
+                  'on_leave': 'bg-amber-50 text-amber-600 border-amber-200',
                 };
-                const labels = { 'full-time': 'Full-Time Teacher', 'part-time': 'Part-Time Teacher', 'substitute': 'Substitute Teacher' };
+                const labels = { 'active': 'Active', 'full-time': 'Full-Time', 'part-time': 'Part-Time', 'substitute': 'Substitute', 'inactive': 'Inactive', 'on_leave': 'On Leave' };
                 return (
-                  <div className={`text-[11px] font-extrabold uppercase tracking-wide px-4 py-1.5 rounded-full border ${styles[s] || 'bg-gray-50 text-gray-500 border-gray-100'}`}>
-                    {labels[s] || s}
+                  <div className={`text-[10px] font-extrabold uppercase tracking-wide px-3 py-1 rounded-full border ${styles[status] || 'bg-gray-50 text-gray-500 border-gray-100'}`}>
+                    {labels[status] || status}
                   </div>
                 );
-              })() : (
-                <div className="text-[11px] font-extrabold uppercase tracking-wide px-4 py-1.5 rounded-full border border-gray-100 bg-gray-50 text-gray-500">
-                  Status Pending
-                </div>
-              )}
+              })()}
             </div>
             
-            <div className="grid grid-cols-2 gap-4 mb-8">
-              <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100/50 flex flex-col gap-2">
-                <div className="flex items-center gap-2 text-gray-400">
-                  <Phone size={14} />
-                  <span className="text-[11px] font-bold uppercase tracking-wider">Phone Number</span>
+            {/* Quick Info Grid */}
+            <div className="grid grid-cols-2 gap-3 mb-5">
+              <div className="bg-gray-50 rounded-2xl p-3.5 border border-gray-100/50 flex flex-col gap-1.5">
+                <div className="flex items-center gap-1.5 text-gray-400">
+                  <Phone size={12} />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Phone</span>
                 </div>
-                <span className="text-sm font-extrabold text-primary-blue">{selectedTeacher.profile?.phone || 'Not provided'}</span>
+                <span className="text-[12px] font-extrabold text-primary-blue">{selectedTeacher._raw?.phone ? `${selectedTeacher._raw.phone_country_code || ''} ${selectedTeacher._raw.phone}` : selectedTeacher.profile?.phone || '—'}</span>
               </div>
-              <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100/50 flex flex-col gap-2">
-                <div className="flex items-center gap-2 text-gray-400">
-                  <Mail size={14} />
-                  <span className="text-[11px] font-bold uppercase tracking-wider">Email Address</span>
+              <div className="bg-gray-50 rounded-2xl p-3.5 border border-gray-100/50 flex flex-col gap-1.5">
+                <div className="flex items-center gap-1.5 text-gray-400">
+                  <Mail size={12} />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Email</span>
                 </div>
-                <span className="text-sm font-extrabold text-primary-blue truncate" title={selectedTeacher.email}>{selectedTeacher.email}</span>
+                <span className="text-[12px] font-extrabold text-primary-blue truncate" title={selectedTeacher.email}>{selectedTeacher.email || '—'}</span>
+              </div>
+              <div className="bg-gray-50 rounded-2xl p-3.5 border border-gray-100/50 flex flex-col gap-1.5">
+                <div className="flex items-center gap-1.5 text-gray-400">
+                  <Building2 size={12} />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Department</span>
+                </div>
+                <span className="text-[12px] font-extrabold text-primary-blue">{selectedTeacher._raw?.department || selectedTeacher.profile?.subject_specialty?.split(',')[0] || '—'}</span>
+              </div>
+              <div className="bg-gray-50 rounded-2xl p-3.5 border border-gray-100/50 flex flex-col gap-1.5">
+                <div className="flex items-center gap-1.5 text-gray-400">
+                  <Briefcase size={12} />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Designation</span>
+                </div>
+                <span className="text-[12px] font-extrabold text-primary-blue">{selectedTeacher._raw?.designation || '—'}</span>
+              </div>
+              <div className="bg-gray-50 rounded-2xl p-3.5 border border-gray-100/50 flex flex-col gap-1.5">
+                <div className="flex items-center gap-1.5 text-gray-400">
+                  <GraduationCap size={12} />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Qualification</span>
+                </div>
+                <span className="text-[12px] font-extrabold text-primary-blue">{selectedTeacher._raw?.qualification || '—'}</span>
+              </div>
+              <div className="bg-gray-50 rounded-2xl p-3.5 border border-gray-100/50 flex flex-col gap-1.5">
+                <div className="flex items-center gap-1.5 text-gray-400">
+                  <CalendarIcon size={12} />
+                  <span className="text-[10px] font-bold uppercase tracking-wider">Joined</span>
+                </div>
+                <span className="text-[12px] font-extrabold text-primary-blue">{selectedTeacher._raw?.joining_date ? new Date(selectedTeacher._raw.joining_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}</span>
               </div>
             </div>
             
-            <div className="flex items-center justify-between pt-6 border-t border-gray-100">
-              <div className="flex items-center gap-4">
-                <a href={selectedTeacher.profile?.socials?.linkedin || '#'} target="_blank" rel="noreferrer" className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:text-sky-600 hover:bg-sky-50 transition-colors">
-                  <Linkedin size={18} />
-                </a>
-                <a href={selectedTeacher.profile?.socials?.twitter || '#'} target="_blank" rel="noreferrer" className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:text-gray-900 hover:bg-gray-200 transition-colors">
-                  <span className="font-bold">X</span>
-                </a>
-                <a href={selectedTeacher.profile?.socials?.facebook || '#'} target="_blank" rel="noreferrer" className="w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 text-gray-400 hover:text-pink-600 hover:bg-pink-50 transition-colors">
-                  <Instagram size={18} />
-                </a>
-              </div>
-              <button className="flex items-center gap-2 bg-sky-500 text-white px-6 py-3 rounded-xl text-sm font-extrabold hover:bg-sky-600 active:scale-95 transition-all shadow-lg shadow-sky-500/20">
-                <MessageCircle size={16} />
+            {/* Footer Actions */}
+            <div className="flex items-center justify-between pt-5 border-t border-gray-100">
+              <button 
+                onClick={() => { setSelectedTeacher(null); navigate(`${selectedTeacher.id}`); }}
+                className="flex items-center gap-2 bg-primary-blue text-white px-6 py-3 rounded-xl text-[13px] font-extrabold hover:brightness-110 active:scale-95 transition-all shadow-lg shadow-primary-blue/20"
+              >
+                <ExternalLink size={15} />
+                <span>View Full Profile</span>
+              </button>
+              <button className="flex items-center gap-2 bg-sky-50 text-sky-600 px-5 py-3 rounded-xl text-[13px] font-extrabold hover:bg-sky-100 active:scale-95 transition-all border border-sky-100">
+                <MessageCircle size={15} />
                 <span>Message</span>
               </button>
             </div>
