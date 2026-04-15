@@ -6,6 +6,7 @@ import Inbox from './pages/Inbox';
 import Calendar from './pages/Calendar';
 import Teachers from './pages/Teachers';
 import AddTeacher from './pages/AddTeacher';
+import TeacherDetails from './pages/TeacherDetails';
 import Students from './pages/Students';
 import StudentDetails from './pages/StudentDetails';
 import AddStudent from './pages/AddStudent';
@@ -57,6 +58,7 @@ function App() {
                 <Route path="admin/calendar" element={<Calendar />} />
                 <Route path="admin/teachers" element={<Teachers />} />
                 <Route path="admin/teachers/add" element={<AddTeacher />} />
+                <Route path="admin/teachers/:id" element={<TeacherDetails />} />
                 <Route path="admin/students" element={<Students />} />
                 <Route path="admin/student-details" element={<StudentDetails />} />
                 <Route path="admin/students/add" element={<AddStudent />} />
