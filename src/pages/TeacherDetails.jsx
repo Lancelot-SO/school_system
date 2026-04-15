@@ -141,7 +141,8 @@ const TeacherDetails = () => {
                 address: foundProfile.profile?.address || '',
                 teacher_id: foundProfile.teacher_id,
                 employee_id: foundProfile.employee_id,
-                status: foundProfile.profile?.employment_status === 'full-time' ? 'active' : 'inactive',
+                status: foundProfile.profile?.employment_status === 'full-time' ? 'Active' : 'Inactive',
+                registration_status: foundProfile.registration_status || 'completed',
                 created_at: foundProfile.created_at,
                 updated_at: foundProfile.updated_at,
                 profile_photo: null, 
@@ -234,7 +235,8 @@ const TeacherDetails = () => {
       const token = localStorage.getItem('token');
       
       const payload = {
-        status: editData.status || 'active',
+        status: editData.status || 'Active',
+        registration_status: editData.registration_status || teacher.registration_status || 'completed',
         full_name: editData.full_name || '',
         email: editData.email || '',
         gender: editData.gender || '',
@@ -293,15 +295,18 @@ const TeacherDetails = () => {
 
   const getStatusStyle = (status) => {
     const styles = {
-      'active': 'bg-emerald-50 text-emerald-600 border-emerald-200',
-      'inactive': 'bg-gray-100 text-gray-500 border-gray-200',
-      'on_leave': 'bg-amber-50 text-amber-600 border-amber-200',
+      'Active': 'bg-emerald-50 text-emerald-600 border-emerald-200',
+      'Inactive': 'bg-gray-100 text-gray-500 border-gray-200',
+      'Leave': 'bg-amber-50 text-amber-600 border-amber-200',
+      'active': 'bg-emerald-50 text-emerald-600 border-emerald-200', // fallback
+      'inactive': 'bg-gray-100 text-gray-500 border-gray-200', // fallback
+      'on_leave': 'bg-amber-50 text-amber-600 border-amber-200', // fallback
     };
     return styles[status] || 'bg-gray-50 text-gray-500 border-gray-200';
   };
 
   const getStatusLabel = (status) => {
-    const labels = { 'active': 'Active', 'inactive': 'Inactive', 'on_leave': 'On Leave' };
+    const labels = { 'Active': 'Active', 'Inactive': 'Inactive', 'Leave': 'On Leave', 'active': 'Active', 'inactive': 'Inactive', 'on_leave': 'On Leave' };
     return labels[status] || status || 'Unknown';
   };
 
@@ -445,7 +450,7 @@ const TeacherDetails = () => {
               )}
             </div>
             {!isEditing && (
-              <div className={`absolute -bottom-1 -right-1 w-8 h-8 rounded-full border-4 border-white shadow-sm ${t.status === 'active' ? 'bg-emerald-400' : t.status === 'on_leave' ? 'bg-amber-400' : 'bg-gray-300'}`}></div>
+              <div className={`absolute -bottom-1 -right-1 w-8 h-8 rounded-full border-4 border-white shadow-sm ${t.status === 'Active' || t.status === 'active' ? 'bg-emerald-400' : t.status === 'Leave' || t.status === 'on_leave' ? 'bg-amber-400' : 'bg-gray-300'}`}></div>
             )}
             <input type="file" ref={fileInputRef} onChange={handlePhotoChange} accept="image/jpeg,image/png,image/jpg" className="hidden" />
             
@@ -456,9 +461,9 @@ const TeacherDetails = () => {
                   onChange={(e) => handleChange('status', e.target.value)}
                   className={`text-[11px] font-extrabold uppercase tracking-wide px-3 py-1.5 rounded-full border focus:outline-none appearance-none text-center ${getStatusStyle(t.status)}`}
                 >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="on_leave">On Leave</option>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                  <option value="Leave">On Leave</option>
                 </select>
               </div>
             )}
