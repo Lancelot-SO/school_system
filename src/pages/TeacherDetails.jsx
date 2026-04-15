@@ -108,7 +108,14 @@ const TeacherDetails = () => {
 
         if (response.ok) {
           const data = await response.json();
-          setTeacher(data.data || data);
+          const fetchedTeacher = data.data || data;
+          
+          // Sanitize registration_status for current backend constraints
+          if (fetchedTeacher.registration_status !== 'draft' && fetchedTeacher.registration_status !== 'completed') {
+            fetchedTeacher.registration_status = 'completed';
+          }
+          
+          setTeacher(fetchedTeacher);
         } else if (response.status === 404) {
           // Fallback to legacy profiles endpoint
           const fallbackResponse = await fetch(`${API_BASE}/profiles/teachers`, {
@@ -236,7 +243,9 @@ const TeacherDetails = () => {
       
       const payload = {
         status: editData.status || 'Active',
-        registration_status: editData.registration_status || teacher.registration_status || 'completed',
+        registration_status: (editData.registration_status === 'draft' || editData.registration_status === 'completed') 
+          ? editData.registration_status 
+          : (teacher.registration_status === 'draft' || teacher.registration_status === 'completed' ? teacher.registration_status : 'completed'),
         full_name: editData.full_name || '',
         email: editData.email || '',
         gender: editData.gender || '',
