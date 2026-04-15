@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   ChevronLeft, 
   Search, 
@@ -14,34 +14,221 @@ import {
   Twitter,
   Instagram,
   Youtube,
-  Linkedin
+  Linkedin,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  X,
+  Plus,
+  Trash2
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+
+const API_BASE = 'https://lumi-api.artfricastudio.com/api';
 
 const AddTeacher = () => {
+  const navigate = useNavigate();
+  const fileInputRef = useRef(null);
+
   const [formData, setFormData] = useState({
-    teacherId: 'T-2111',
-    fullName: 'Jane Doe',
-    dob: '1988-05-14',
-    gender: 'Female',
-    employeeId: 'EMP-1009',
-    department: 'Mathematics',
-    designation: 'Senior Teacher',
-    joiningDate: '2022-01-10',
-    qualification: '',
-    email: 'jane.doe@school.edu',
-    phone: '7900 112233',
+    full_name: '',
+    date_of_birth: '',
+    gender: '',
+    email: '',
+    phone_country_code: '+233',
+    phone: '',
     address: '',
-    emergencyName: 'John Doe',
-    emergencyRelation: 'Husband',
-    emergencyPhone: '7900 112244',
-    specialization: 'Algebra & Calculus',
-    medicalCondition: false,
-    medicalDetails: ''
+    department: '',
+    designation: '',
+    joining_date: '',
+    qualification: '',
+    specialization: '',
+    medical_condition_alert: false,
+    medical_condition_details: '',
+    status: 'active'
   });
+
+  const [emergencyContacts, setEmergencyContacts] = useState([
+    { name: '', relation: '', phone_country_code: '+233', phone: '' }
+  ]);
+
+  const [profilePhoto, setProfilePhoto] = useState(null);
+  const [photoPreview, setPhotoPreview] = useState(null);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [toast, setToast] = useState(null);
+
+  const handleChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: null }));
+    }
+  };
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        setToast({ type: 'error', message: 'Photo must be under 2MB' });
+        return;
+      }
+      setProfilePhoto(file);
+      const reader = new FileReader();
+      reader.onloadend = () => setPhotoPreview(reader.result);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleEmergencyChange = (index, field, value) => {
+    setEmergencyContacts(prev => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  };
+
+  const addEmergencyContact = () => {
+    setEmergencyContacts(prev => [...prev, { name: '', relation: '', phone_country_code: '+233', phone: '' }]);
+  };
+
+  const removeEmergencyContact = (index) => {
+    if (emergencyContacts.length === 1) return;
+    setEmergencyContacts(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const showToast = (type, message) => {
+    setToast({ type, message });
+    setTimeout(() => setToast(null), 5000);
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.full_name.trim()) newErrors.full_name = 'Full name is required';
+    if (!formData.email.trim()) newErrors.email = 'Email is required';
+    if (!formData.gender) newErrors.gender = 'Gender is required';
+    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
+    if (!formData.department.trim()) newErrors.department = 'Department is required';
+    if (!formData.designation.trim()) newErrors.designation = 'Designation is required';
+    if (!formData.joining_date) newErrors.joining_date = 'Joining date is required';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) {
+      showToast('error', 'Please fill in all required fields');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrors({});
+
+    try {
+      const token = localStorage.getItem('token');
+      
+      const body = new FormData();
+      
+      // Append all form fields
+      body.append('full_name', formData.full_name);
+      body.append('email', formData.email);
+      body.append('gender', formData.gender.toLowerCase());
+      body.append('phone_country_code', formData.phone_country_code);
+      body.append('phone', formData.phone);
+      body.append('status', formData.status);
+      body.append('department', formData.department);
+      body.append('designation', formData.designation);
+      body.append('joining_date', formData.joining_date);
+      body.append('medical_condition_alert', formData.medical_condition_alert ? '1' : '0');
+      
+      if (formData.date_of_birth) body.append('date_of_birth', formData.date_of_birth);
+      if (formData.address) body.append('address', formData.address);
+      if (formData.qualification) body.append('qualification', formData.qualification);
+      if (formData.specialization) body.append('specialization', formData.specialization);
+      if (formData.medical_condition_alert && formData.medical_condition_details) {
+        body.append('medical_condition_details', formData.medical_condition_details);
+      }
+
+      // Append profile photo
+      if (profilePhoto) {
+        body.append('profile_photo', profilePhoto);
+      }
+
+      // Append emergency contacts
+      emergencyContacts.forEach((contact, index) => {
+        if (contact.name.trim()) {
+          body.append(`emergency_contacts[${index}][name]`, contact.name);
+          body.append(`emergency_contacts[${index}][relation]`, contact.relation);
+          body.append(`emergency_contacts[${index}][phone_country_code]`, contact.phone_country_code);
+          body.append(`emergency_contacts[${index}][phone]`, contact.phone);
+        }
+      });
+
+      const response = await fetch(`${API_BASE}/teachers`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+        body
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        showToast('success', 'Teacher added successfully!');
+        setTimeout(() => navigate('../teachers'), 1500);
+      } else if (response.status === 422) {
+        // Validation errors from API
+        const apiErrors = {};
+        if (data.errors) {
+          Object.entries(data.errors).forEach(([key, messages]) => {
+            apiErrors[key] = Array.isArray(messages) ? messages[0] : messages;
+          });
+        }
+        setErrors(apiErrors);
+        showToast('error', data.message || 'Validation failed. Please check the fields.');
+      } else {
+        showToast('error', data.message || 'Failed to add teacher. Please try again.');
+      }
+    } catch (err) {
+      console.error('Failed to submit teacher:', err);
+      showToast('error', 'Network error. Please check your connection and try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const inputClass = (field) => `w-full px-4 py-3 bg-white border ${errors[field] ? 'border-red-300 ring-2 ring-red-50' : 'border-gray-100'} rounded-2xl text-[13px] font-extrabold text-primary-blue focus:outline-none focus:border-sky-200 focus:ring-4 focus:ring-sky-50 transition-all`;
+
+  const countryCodes = [
+    { code: '+233', label: '🇬🇭 +233' },
+    { code: '+44', label: '🇬🇧 +44' },
+    { code: '+1', label: '🇺🇸 +1' },
+    { code: '+91', label: '🇮🇳 +91' },
+    { code: '+234', label: '🇳🇬 +234' },
+    { code: '+254', label: '🇰🇪 +254' },
+    { code: '+27', label: '🇿🇦 +27' },
+    { code: '+61', label: '🇦🇺 +61' },
+  ];
 
   return (
     <div className="flex flex-col gap-6 py-6 animate-in fade-in duration-500 overflow-x-hidden pb-24 relative">
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-6 right-6 z-[100] flex items-center gap-3 px-6 py-4 rounded-2xl shadow-2xl border transition-all animate-in slide-in-from-top-2 duration-300 ${
+          toast.type === 'success' 
+            ? 'bg-emerald-50 border-emerald-200 text-emerald-700' 
+            : 'bg-red-50 border-red-200 text-red-700'
+        }`}>
+          {toast.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
+          <span className="text-[13px] font-extrabold">{toast.message}</span>
+          <button onClick={() => setToast(null)} className="ml-2 p-1 rounded-full hover:bg-white/50 transition-colors">
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between px-4">
         <div className="flex items-center gap-4">
@@ -96,49 +283,42 @@ const AddTeacher = () => {
           <section className="bg-white rounded-[40px] p-8 shadow-sm border border-white">
             <h2 className="text-lg font-extrabold text-primary-blue mb-8">Personal Information</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div className="flex flex-col gap-2">
-                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Teacher ID</label>
-                <div className="relative">
-                  <input 
-                    type="text" 
-                    value={formData.teacherId}
-                    readOnly
-                    className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-2xl text-[13px] font-extrabold text-primary-blue focus:outline-none grayscale opacity-60 cursor-not-allowed"
-                  />
-                  <span className="text-[10px] font-bold text-gray-400 absolute -bottom-5 left-0">Auto-Generated</span>
-                </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Full Name</label>
+                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                  Full Name <span className="text-red-400">*</span>
+                </label>
                 <input 
                   type="text" 
-                  value={formData.fullName}
-                  onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                  value={formData.full_name}
+                  onChange={(e) => handleChange('full_name', e.target.value)}
                   placeholder="Enter full name"
-                  className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-[13px] font-extrabold text-primary-blue focus:outline-none focus:border-sky-200 focus:ring-4 focus:ring-sky-50 transition-all"
+                  className={inputClass('full_name')}
                 />
+                {errors.full_name && <span className="text-[10px] font-bold text-red-400">{errors.full_name}</span>}
               </div>
               <div className="flex flex-col gap-2">
                 <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Date of Birth</label>
                 <div className="relative">
                   <input 
                     type="date" 
-                    value={formData.dob}
-                    onChange={(e) => setFormData({...formData, dob: e.target.value})}
-                    className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-[13px] font-extrabold text-primary-blue focus:outline-none focus:border-sky-200 focus:ring-4 focus:ring-sky-50 transition-all appearance-none"
+                    value={formData.date_of_birth}
+                    onChange={(e) => handleChange('date_of_birth', e.target.value)}
+                    className={inputClass('date_of_birth') + ' appearance-none'}
                   />
                   <CalendarIcon size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                 </div>
               </div>
             </div>
 
-            <div className="flex flex-col gap-2 mb-8 mt-10">
-              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Gender</label>
+            <div className="flex flex-col gap-2 mb-8">
+              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                Gender <span className="text-red-400">*</span>
+              </label>
               <div className="flex items-center gap-4">
                 <button 
                   className={`flex-1 flex items-center gap-3 px-6 py-3.5 rounded-2xl border transition-all font-extrabold text-[13px] ${formData.gender === 'Male' ? 'bg-promo-bg border-sky-200 text-primary-blue' : 'bg-white border-gray-100 text-gray-400 hover:bg-gray-50'}`}
-                  onClick={() => setFormData({...formData, gender: 'Male'})}
+                  onClick={() => handleChange('gender', 'Male')}
                 >
                   <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.gender === 'Male' ? 'border-sky-500 bg-white' : 'border-gray-200'}`}>
                     {formData.gender === 'Male' && <div className="w-1.5 h-1.5 bg-sky-500 rounded-full"></div>}
@@ -147,7 +327,7 @@ const AddTeacher = () => {
                 </button>
                 <button 
                   className={`flex-1 flex items-center gap-3 px-6 py-3.5 rounded-2xl border transition-all font-extrabold text-[13px] ${formData.gender === 'Female' ? 'bg-sidebar-active border-purple-200 text-primary-blue shadow-sm shadow-purple-100' : 'bg-white border-gray-100 text-gray-400 hover:bg-gray-50'}`}
-                  onClick={() => setFormData({...formData, gender: 'Female'})}
+                  onClick={() => handleChange('gender', 'Female')}
                 >
                   <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${formData.gender === 'Female' ? 'border-primary-pink bg-white' : 'border-gray-200'}`}>
                     {formData.gender === 'Female' && <div className="w-1.5 h-1.5 bg-primary-pink rounded-full"></div>}
@@ -155,16 +335,36 @@ const AddTeacher = () => {
                   Female
                 </button>
               </div>
+              {errors.gender && <span className="text-[10px] font-bold text-red-400">{errors.gender}</span>}
             </div>
 
-            <div className="flex flex-col gap-2 mt-10">
+            <div className="flex flex-col gap-2 mt-6">
               <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Profile Photo</label>
-              <div className="w-full border-2 border-dashed border-sky-200 rounded-[32px] p-10 flex flex-col items-center justify-center bg-sky-50/20 group cursor-pointer hover:bg-sky-50/40 transition-all">
-                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-sky-500 shadow-sm mb-4">
-                  <Upload size={24} />
-                </div>
-                <p className="text-[14px] font-extrabold text-sky-600 mb-1">Click or drag to upload</p>
-                <p className="text-[11px] font-bold text-gray-400">Upload a recent passport-size photo (Max: 2MB, JPG/PNG)</p>
+              <input 
+                type="file" 
+                ref={fileInputRef}
+                onChange={handlePhotoChange}
+                accept="image/jpeg,image/png,image/jpg"
+                className="hidden"
+              />
+              <div 
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full border-2 border-dashed border-sky-200 rounded-[32px] p-10 flex flex-col items-center justify-center bg-sky-50/20 group cursor-pointer hover:bg-sky-50/40 transition-all"
+              >
+                {photoPreview ? (
+                  <div className="flex flex-col items-center gap-4">
+                    <img src={photoPreview} alt="Preview" className="w-20 h-20 rounded-2xl object-cover border-2 border-white shadow-lg" />
+                    <p className="text-[12px] font-bold text-sky-600">Click to change photo</p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-sky-500 shadow-sm mb-4">
+                      <Upload size={24} />
+                    </div>
+                    <p className="text-[14px] font-extrabold text-sky-600 mb-1">Click or drag to upload</p>
+                    <p className="text-[11px] font-bold text-gray-400">Upload a recent passport-size photo (Max: 2MB, JPG/PNG)</p>
+                  </>
+                )}
               </div>
             </div>
           </section>
@@ -175,35 +375,47 @@ const AddTeacher = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
               <div className="flex flex-col gap-2">
-                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Email Address</label>
+                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                  Email Address <span className="text-red-400">*</span>
+                </label>
                 <div className="relative">
                   <input 
                     type="email" 
                     value={formData.email}
-                    onChange={(e) => setFormData({...formData, email: e.target.value})}
-                    className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-[13px] font-extrabold text-primary-blue focus:outline-none focus:border-sky-200 focus:ring-4 focus:ring-sky-50 transition-all"
+                    onChange={(e) => handleChange('email', e.target.value)}
+                    placeholder="jane.doe@school.edu"
+                    className={inputClass('email')}
                   />
                   <Mail size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
                 </div>
+                {errors.email && <span className="text-[10px] font-bold text-red-400">{errors.email}</span>}
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Phone Number</label>
+                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                  Phone Number <span className="text-red-400">*</span>
+                </label>
                 <div className="flex items-center">
                   <div className="relative shrink-0">
-                    <select className="appearance-none bg-gray-50 border border-gray-100 rounded-l-2xl py-3 pl-4 pr-10 text-[13px] font-extrabold text-primary-blue focus:outline-none focus:border-sky-200 transition-all h-[46px] border-r-0 cursor-pointer">
-                      <option>+44</option>
-                      <option>+1</option>
-                      <option>+91</option>
+                    <select 
+                      value={formData.phone_country_code}
+                      onChange={(e) => handleChange('phone_country_code', e.target.value)}
+                      className="appearance-none bg-gray-50 border border-gray-100 rounded-l-2xl py-3 pl-4 pr-10 text-[13px] font-extrabold text-primary-blue focus:outline-none focus:border-sky-200 transition-all h-[46px] border-r-0 cursor-pointer"
+                    >
+                      {countryCodes.map(cc => (
+                        <option key={cc.code} value={cc.code}>{cc.label}</option>
+                      ))}
                     </select>
                     <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                   </div>
                   <input 
                     type="text" 
                     value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    className="w-full px-4 py-3 bg-white border border-gray-100 rounded-r-2xl text-[13px] font-extrabold text-primary-blue focus:outline-none focus:border-sky-200 h-[46px] transition-all"
+                    onChange={(e) => handleChange('phone', e.target.value)}
+                    placeholder="XX XXXX XXXX"
+                    className={`w-full px-4 py-3 bg-white border ${errors.phone ? 'border-red-300' : 'border-gray-100'} rounded-r-2xl text-[13px] font-extrabold text-primary-blue focus:outline-none focus:border-sky-200 h-[46px] transition-all`}
                   />
                 </div>
+                {errors.phone && <span className="text-[10px] font-bold text-red-400">{errors.phone}</span>}
               </div>
             </div>
 
@@ -212,82 +424,116 @@ const AddTeacher = () => {
               <textarea 
                 rows="2"
                 value={formData.address}
-                onChange={(e) => setFormData({...formData, address: e.target.value})}
+                onChange={(e) => handleChange('address', e.target.value)}
                 placeholder="Street, City, State, ZIP"
                 className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-[13px] font-extrabold text-primary-blue focus:outline-none focus:border-sky-200 focus:ring-4 focus:ring-sky-50 transition-all resize-none"
               ></textarea>
             </div>
           </section>
 
-          {/* Emergency Contact */}
+          {/* Emergency Contacts */}
           <section className="bg-white rounded-[40px] p-8 shadow-sm border border-white">
-            <h2 className="text-lg font-extrabold text-primary-blue mb-8">Emergency Contact</h2>
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-lg font-extrabold text-primary-blue">Emergency Contacts</h2>
+              <button 
+                onClick={addEmergencyContact}
+                className="flex items-center gap-1.5 text-[11px] font-extrabold text-sky-600 bg-sky-50 px-4 py-2 rounded-xl hover:bg-sky-100 transition-colors border border-sky-100"
+              >
+                <Plus size={14} />
+                Add Contact
+              </button>
+            </div>
             
-            <div className="bg-gray-50/50 p-6 rounded-[32px] border border-gray-50">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase">Name</label>
-                  <input 
-                    type="text" 
-                    value={formData.emergencyName}
-                    onChange={(e) => setFormData({...formData, emergencyName: e.target.value})}
-                    className="w-full px-4 py-2.5 bg-white border border-gray-100 rounded-xl text-[12px] font-extrabold text-primary-blue focus:outline-none"
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase">Relation</label>
-                  <div className="relative">
-                    <select 
-                      value={formData.emergencyRelation}
-                      onChange={(e) => setFormData({...formData, emergencyRelation: e.target.value})}
-                      className="w-full px-4 py-2.5 bg-white border border-gray-100 rounded-xl text-[12px] font-extrabold text-primary-blue focus:outline-none appearance-none cursor-pointer"
+            <div className="space-y-4">
+              {emergencyContacts.map((contact, index) => (
+                <div key={index} className="bg-gray-50/50 p-6 rounded-[32px] border border-gray-50 relative group">
+                  {emergencyContacts.length > 1 && (
+                    <button 
+                      onClick={() => removeEmergencyContact(index)}
+                      className="absolute top-4 right-4 p-1.5 text-gray-300 hover:text-red-400 hover:bg-red-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
                     >
-                      <option>Husband</option>
-                      <option>Wife</option>
-                      <option>Parent</option>
-                      <option>Sibling</option>
-                      <option>Friend</option>
-                    </select>
-                    <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                  </div>
-                </div>
-                <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-bold text-gray-400 uppercase">Phone Number</label>
-                  <div className="flex border border-gray-100 rounded-xl overflow-hidden bg-white">
-                    <div className="relative shrink-0 border-r border-gray-100 bg-gray-50/30">
-                      <select className="appearance-none py-2.5 pl-3 pr-8 text-[12px] font-extrabold text-primary-blue focus:outline-none cursor-pointer text-center">
-                        <option>+44</option>
-                      </select>
-                      <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase">Name</label>
+                      <input 
+                        type="text" 
+                        value={contact.name}
+                        onChange={(e) => handleEmergencyChange(index, 'name', e.target.value)}
+                        placeholder="Contact name"
+                        className="w-full px-4 py-2.5 bg-white border border-gray-100 rounded-xl text-[12px] font-extrabold text-primary-blue focus:outline-none"
+                      />
                     </div>
-                    <input 
-                      type="text" 
-                      value={formData.emergencyPhone}
-                      onChange={(e) => setFormData({...formData, emergencyPhone: e.target.value})}
-                      className="w-full px-4 py-2.5 text-[12px] font-extrabold text-primary-blue focus:outline-none"
-                    />
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase">Relation</label>
+                      <div className="relative">
+                        <select 
+                          value={contact.relation}
+                          onChange={(e) => handleEmergencyChange(index, 'relation', e.target.value)}
+                          className="w-full px-4 py-2.5 bg-white border border-gray-100 rounded-xl text-[12px] font-extrabold text-primary-blue focus:outline-none appearance-none cursor-pointer"
+                        >
+                          <option value="">Select...</option>
+                          <option>Husband</option>
+                          <option>Wife</option>
+                          <option>Parent</option>
+                          <option>Sibling</option>
+                          <option>Friend</option>
+                          <option>Other</option>
+                        </select>
+                        <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[10px] font-bold text-gray-400 uppercase">Phone Number</label>
+                      <div className="flex border border-gray-100 rounded-xl overflow-hidden bg-white">
+                        <div className="relative shrink-0 border-r border-gray-100 bg-gray-50/30">
+                          <select 
+                            value={contact.phone_country_code}
+                            onChange={(e) => handleEmergencyChange(index, 'phone_country_code', e.target.value)}
+                            className="appearance-none py-2.5 pl-3 pr-8 text-[12px] font-extrabold text-primary-blue focus:outline-none cursor-pointer text-center"
+                          >
+                            {countryCodes.map(cc => (
+                              <option key={cc.code} value={cc.code}>{cc.code}</option>
+                            ))}
+                          </select>
+                          <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                        </div>
+                        <input 
+                          type="text" 
+                          value={contact.phone}
+                          onChange={(e) => handleEmergencyChange(index, 'phone', e.target.value)}
+                          placeholder="Phone number"
+                          className="w-full px-4 py-2.5 text-[12px] font-extrabold text-primary-blue focus:outline-none"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
           </section>
         </div>
 
         {/* Right Column */}
         <div className="lg:col-span-4 flex flex-col gap-6">
-          {/* Administration */}
+          {/* Status */}
           <section className="bg-white rounded-[40px] p-8 shadow-sm border border-white">
-            <h2 className="text-lg font-extrabold text-primary-blue mb-8">Administration</h2>
+            <h2 className="text-lg font-extrabold text-primary-blue mb-6">Status</h2>
             <div className="flex flex-col gap-2">
-              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Employee ID</label>
+              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Teacher Status</label>
               <div className="relative">
-                <input 
-                  type="text" 
-                  value={formData.employeeId}
-                  readOnly
-                  className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-2xl text-[13px] font-extrabold text-primary-blue focus:outline-none grayscale opacity-60 cursor-not-allowed"
-                />
-                <span className="text-[10px] font-bold text-gray-400 absolute -bottom-5 left-0">Auto-Generated</span>
+                <select 
+                  className="w-full bg-gray-50 border-none rounded-xl px-4 py-3.5 text-[13px] font-bold text-gray-700 outline-none transition-all cursor-pointer appearance-none focus:ring-2 focus:ring-sky-100"
+                  value={formData.status}
+                  onChange={(e) => handleChange('status', e.target.value)}
+                >
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="on_leave">On Leave</option>
+                </select>
+                <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
             </div>
           </section>
@@ -298,31 +544,41 @@ const AddTeacher = () => {
             
             <div className="grid grid-cols-2 gap-6 mb-8">
               <div className="flex flex-col gap-2">
-                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Department</label>
+                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                  Department <span className="text-red-400">*</span>
+                </label>
                 <div className="relative">
                   <select 
-                    className="w-full bg-gray-50 border-none rounded-xl px-4 py-3.5 text-[13px] font-bold text-gray-700 outline-none mt-2 transition-all cursor-pointer appearance-none focus:ring-2 focus:ring-sky-100"
+                    className={`w-full bg-gray-50 border ${errors.department ? 'border-red-300' : 'border-transparent'} rounded-xl px-4 py-3.5 text-[13px] font-bold text-gray-700 outline-none mt-2 transition-all cursor-pointer appearance-none focus:ring-2 focus:ring-sky-100`}
                     value={formData.department}
-                    onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+                    onChange={(e) => handleChange('department', e.target.value)}
                   >
+                    <option value="">Select...</option>
                     <option>Mathematics</option>
                     <option>Science</option>
                     <option>English</option>
                     <option>History</option>
                     <option>Physical Education</option>
                     <option>Arts</option>
+                    <option>ICT</option>
+                    <option>French</option>
+                    <option>Social Studies</option>
                   </select>
                   <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                 </div>
+                {errors.department && <span className="text-[10px] font-bold text-red-400">{errors.department}</span>}
               </div>
               <div className="flex flex-col gap-2">
-                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Designation</label>
+                <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                  Designation <span className="text-red-400">*</span>
+                </label>
                 <div className="relative mt-2">
                   <select 
-                    className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-[13px] font-extrabold text-primary-blue focus:outline-none appearance-none cursor-pointer focus:border-sky-200 focus:ring-4 focus:ring-sky-50 transition-all"
+                    className={`w-full px-4 py-3 bg-white border ${errors.designation ? 'border-red-300' : 'border-gray-100'} rounded-2xl text-[13px] font-extrabold text-primary-blue focus:outline-none appearance-none cursor-pointer focus:border-sky-200 focus:ring-4 focus:ring-sky-50 transition-all`}
                     value={formData.designation}
-                    onChange={(e) => setFormData({...formData, designation: e.target.value})}
+                    onChange={(e) => handleChange('designation', e.target.value)}
                   >
+                    <option value="">Select...</option>
                     <option>Teacher</option>
                     <option>Senior Teacher</option>
                     <option>Head of Department</option>
@@ -330,20 +586,24 @@ const AddTeacher = () => {
                   </select>
                   <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                 </div>
+                {errors.designation && <span className="text-[10px] font-bold text-red-400">{errors.designation}</span>}
               </div>
             </div>
 
             <div className="flex flex-col gap-2 mb-8 mt-10">
-              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Joining Date</label>
+              <label className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">
+                Joining Date <span className="text-red-400">*</span>
+              </label>
               <div className="relative">
                 <input 
                   type="date" 
-                  value={formData.joiningDate}
-                  onChange={(e) => setFormData({...formData, joiningDate: e.target.value})}
-                  className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-[13px] font-extrabold text-primary-blue focus:outline-none appearance-none focus:border-sky-200 focus:ring-4 focus:ring-sky-50 transition-all"
+                  value={formData.joining_date}
+                  onChange={(e) => handleChange('joining_date', e.target.value)}
+                  className={inputClass('joining_date') + ' appearance-none'}
                 />
                 <CalendarIcon size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
+              {errors.joining_date && <span className="text-[10px] font-bold text-red-400">{errors.joining_date}</span>}
             </div>
 
             <div className="flex flex-col gap-2 mt-10">
@@ -351,9 +611,9 @@ const AddTeacher = () => {
               <input 
                 type="text" 
                 value={formData.qualification}
-                onChange={(e) => setFormData({...formData, qualification: e.target.value})}
+                onChange={(e) => handleChange('qualification', e.target.value)}
                 placeholder="e.g., BSc., M.Ed"
-                className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-[13px] font-extrabold text-primary-blue focus:outline-none focus:border-sky-200 focus:ring-4 focus:ring-sky-50 transition-all"
+                className={inputClass('qualification')}
               />
             </div>
             
@@ -362,9 +622,9 @@ const AddTeacher = () => {
               <input 
                 type="text" 
                 value={formData.specialization}
-                onChange={(e) => setFormData({...formData, specialization: e.target.value})}
+                onChange={(e) => handleChange('specialization', e.target.value)}
                 placeholder="e.g., Algebra & Calculus"
-                className="w-full px-4 py-3 bg-white border border-gray-100 rounded-2xl text-[13px] font-extrabold text-primary-blue focus:outline-none focus:border-sky-200 focus:ring-4 focus:ring-sky-50 transition-all"
+                className={inputClass('specialization')}
               />
             </div>
           </section>
@@ -377,17 +637,17 @@ const AddTeacher = () => {
               <div className="flex items-center justify-between">
                 <label className="text-[12px] font-extrabold text-gray-500">Medical Condition Alert</label>
                 <button 
-                  onClick={() => setFormData({...formData, medicalCondition: !formData.medicalCondition})}
-                  className={`w-11 h-6 rounded-full transition-colors relative flex items-center shrink-0 ${formData.medicalCondition ? 'bg-primary-blue' : 'bg-gray-200'}`}
+                  onClick={() => handleChange('medical_condition_alert', !formData.medical_condition_alert)}
+                  className={`w-11 h-6 rounded-full transition-colors relative flex items-center shrink-0 ${formData.medical_condition_alert ? 'bg-primary-blue' : 'bg-gray-200'}`}
                 >
-                  <div className={`w-4 h-4 bg-white rounded-full transition-transform absolute ${formData.medicalCondition ? 'translate-x-6' : 'translate-x-1'}`}></div>
+                  <div className={`w-4 h-4 bg-white rounded-full transition-transform absolute ${formData.medical_condition_alert ? 'translate-x-6' : 'translate-x-1'}`}></div>
                 </button>
               </div>
 
-              {formData.medicalCondition && (
+              {formData.medical_condition_alert && (
                 <textarea 
-                  value={formData.medicalDetails}
-                  onChange={(e) => setFormData({...formData, medicalDetails: e.target.value})}
+                  value={formData.medical_condition_details}
+                  onChange={(e) => handleChange('medical_condition_details', e.target.value)}
                   rows="3"
                   placeholder="Describe medical condition"
                   className="w-full p-4 bg-gray-50/50 border border-gray-100 rounded-[24px] text-[12px] font-bold text-gray-500 leading-relaxed focus:outline-none"
@@ -406,11 +666,25 @@ const AddTeacher = () => {
           </button>
           
           <div className="flex items-center gap-4">
-            <button className="px-8 py-3.5 bg-sky-50 text-sky-600 rounded-[18px] text-[14px] font-extrabold hover:bg-sky-100 transition-all active:scale-95 shadow-sm shadow-sky-100/50">
+            <Link 
+              to="../teachers"
+              className="px-8 py-3.5 bg-sky-50 text-sky-600 rounded-[18px] text-[14px] font-extrabold hover:bg-sky-100 transition-all active:scale-95 shadow-sm shadow-sky-100/50"
+            >
               Cancel
-            </button>
-            <button className="px-8 py-3.5 bg-promo-btn text-primary-pink rounded-[18px] text-[14px] font-extrabold hover:brightness-95 transition-all active:scale-95 shadow-sm shadow-pink-100/50">
-              Save & Add Teacher
+            </Link>
+            <button 
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="px-8 py-3.5 bg-primary-pink text-white rounded-[18px] text-[14px] font-extrabold hover:brightness-105 transition-all active:scale-95 shadow-lg shadow-primary-pink/20 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={18} className="animate-spin" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <span>Save & Add Teacher</span>
+              )}
             </button>
           </div>
         </div>

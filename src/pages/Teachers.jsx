@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Users, 
   Clock, 
@@ -54,7 +55,10 @@ const CustomDot = (props) => {
   );
 };
 
+const API_BASE = 'https://lumi-api.artfricastudio.com/api';
+
 const Teachers = () => {
+  const navigate = useNavigate();
   const [teacherData, setTeacherData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -106,14 +110,17 @@ const Teachers = () => {
           }
         };
 
-        const [profilesRes, graphsRes] = await Promise.all([
-          fetch('https://lumi-api.artfricastudio.com/api/profiles/teachers', options),
-          fetch('https://lumi-api.artfricastudio.com/api/attendance/teachers/graphs', options).catch(() => null)
+        const [profilesRes, graphsRes, teachersRes] = await Promise.all([
+          fetch(`${API_BASE}/profiles/teachers`, options),
+          fetch(`${API_BASE}/attendance/teachers/graphs`, options).catch(() => null),
+          fetch(`${API_BASE}/teachers`, options).catch(() => null)
         ]);
+
+        let combinedData = [];
 
         if (profilesRes.ok) {
           const profilesData = await profilesRes.json();
-          let combinedData = profilesData.data || [];
+          combinedData = profilesData.data || [];
 
           if (graphsRes && graphsRes.ok) {
             const graphsData = await graphsRes.json();
@@ -129,9 +136,33 @@ const Teachers = () => {
               }));
             }
           }
-          
-          setTeacherData(combinedData);
         }
+
+        // Merge teachers from the new /api/teachers endpoint
+        if (teachersRes && teachersRes.ok) {
+          const teachersData = await teachersRes.json();
+          const newTeachers = teachersData.data || teachersData || [];
+          const existingIds = new Set(combinedData.map(t => t.id));
+          
+          const additionalTeachers = (Array.isArray(newTeachers) ? newTeachers : []).filter(t => !existingIds.has(t.id)).map(t => ({
+            id: t.id,
+            name: t.full_name || t.name || 'Unknown',
+            email: t.email || '',
+            profile_picture: t.profile_photo ? `${API_BASE.replace('/api', '')}/storage/${t.profile_photo}` : null,
+            profile: {
+              subject_specialty: t.department || t.specialization || '',
+              employment_status: t.status === 'active' ? 'full-time' : t.status,
+              phone: t.phone || ''
+            },
+            teacher_id: t.teacher_id,
+            employee_id: t.employee_id,
+            _raw: t
+          }));
+          
+          combinedData = [...combinedData, ...additionalTeachers];
+        }
+          
+        setTeacherData(combinedData);
       } catch (err) {
         console.error("Failed to fetch teachers profiles or attendance graphs", err);
       } finally {
@@ -485,7 +516,10 @@ const Teachers = () => {
               </div>
             </div>
             
-            <button className="flex items-center gap-2 bg-primary-pink text-white px-6 py-3 rounded-[20px] text-sm font-extrabold hover:brightness-105 active:scale-95 transition-all shadow-lg shadow-primary-pink/20">
+            <button 
+              onClick={() => navigate('add')}
+              className="flex items-center gap-2 bg-primary-pink text-white px-6 py-3 rounded-[20px] text-sm font-extrabold hover:brightness-105 active:scale-95 transition-all shadow-lg shadow-primary-pink/20"
+            >
               <Plus size={18} strokeWidth={3} />
               <span>Add Teacher</span>
             </button>
