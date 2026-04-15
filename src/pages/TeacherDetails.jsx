@@ -232,48 +232,46 @@ const TeacherDetails = () => {
     setIsSaving(true);
     try {
       const token = localStorage.getItem('token');
-      const body = new FormData();
       
-      // We use POST with _method = PUT to allow multipart/form-data upload via Laravel
-      body.append('_method', 'PUT');
-      
-      const fields = [
-        'full_name', 'email', 'gender', 'phone_country_code', 'phone', 'address',
-        'department', 'designation', 'joining_date', 'qualification', 'specialization',
-        'status', 'date_of_birth'
-      ];
+      const payload = {
+        status: editData.status || 'active',
+        full_name: editData.full_name || '',
+        email: editData.email || '',
+        gender: editData.gender || '',
+        date_of_birth: editData.date_of_birth || null,
+        phone: editData.phone || '',
+        phone_country_code: editData.phone_country_code || '+233',
+        address: editData.address || '',
+        department: editData.department || '',
+        designation: editData.designation || '',
+        joining_date: editData.joining_date || null,
+        qualification: editData.qualification || '',
+        specialization: editData.specialization || '',
+        medical_condition_alert: editData.medical_condition_alert ? true : false,
+        medical_condition_details: editData.medical_condition_details || null,
+      };
 
-      fields.forEach(f => {
-        if (editData[f] !== undefined && editData[f] !== null) {
-          body.append(f, editData[f]);
+      if (editData.emergency_contacts && editData.emergency_contacts.length > 0) {
+        const ec = editData.emergency_contacts[0];
+        if (ec.name?.trim()) {
+          payload.emergency_contact = {
+            name: ec.name,
+            relation: ec.relation || '',
+            phone: ec.phone || '',
+            phone_country_code: ec.phone_country_code || '+233'
+          };
         }
-      });
-      
-      body.append('medical_condition_alert', editData.medical_condition_alert ? '1' : '0');
-      if (editData.medical_condition_alert && editData.medical_condition_details) {
-        body.append('medical_condition_details', editData.medical_condition_details);
       }
 
-      if (selectedPhoto) {
-        body.append('profile_photo', selectedPhoto);
-      }
-
-      (editData.emergency_contacts || []).forEach((contact, index) => {
-        if (contact.name?.trim()) {
-          body.append(`emergency_contacts[${index}][name]`, contact.name);
-          body.append(`emergency_contacts[${index}][relation]`, contact.relation);
-          body.append(`emergency_contacts[${index}][phone_country_code]`, contact.phone_country_code || '+233');
-          body.append(`emergency_contacts[${index}][phone]`, contact.phone);
-        }
-      });
-
+      // Important: Use PUT method with application/json
       const response = await fetch(`${API_BASE}/teachers/${teacher.id}`, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body
+        body: JSON.stringify(payload)
       });
 
       const data = await response.json();
