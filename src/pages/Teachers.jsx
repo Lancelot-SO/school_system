@@ -156,7 +156,7 @@ const Teachers = () => {
             profile_picture: t.profile_photo ? `${API_BASE.replace('/api', '')}/storage/${t.profile_photo}` : null,
             profile: {
               subject_specialty: t.department || t.specialization || '',
-              employment_status: t.status === 'active' ? 'full-time' : t.status,
+              employment_status: ['Active', 'Inactive', 'Leave'].includes(t.status) ? t.status : (t.status === 'active' ? 'Active' : t.status),
               phone: t.phone || ''
             },
             teacher_id: t.teacher_id,
@@ -205,15 +205,15 @@ const Teachers = () => {
 
   // --- Dynamic Data Generation ---
 
-  const fullTimeCount = teacherData.filter(t => t.profile?.employment_status === 'full-time').length;
-  const partTimeCount = teacherData.filter(t => t.profile?.employment_status === 'part-time').length;
-  const substituteCount = teacherData.filter(t => t.profile?.employment_status === 'substitute').length;
+  const activeCount = teacherData.filter(t => t.profile?.employment_status === 'Active' || t.profile?.employment_status === 'active' || t.profile?.employment_status === 'full-time').length;
+  const leaveCount = teacherData.filter(t => t.profile?.employment_status === 'Leave' || t.profile?.employment_status === 'on_leave').length;
+  const inactiveCount = teacherData.filter(t => t.profile?.employment_status === 'Inactive' || t.profile?.employment_status === 'inactive').length;
 
   const dynamicStats = [
     { label: 'Total Teachers', count: teacherData.length, icon: Users, bgColor: 'bg-white', iconColor: 'text-white', iconBg: 'bg-[#1a365d]' },
-    { label: 'Full-Time Teacher', count: fullTimeCount, icon: Clock, bgColor: 'bg-white', iconColor: 'text-[#d81b60]', iconBg: 'bg-[#fae8ff]' },
-    { label: 'Part-Time Teacher', count: partTimeCount, icon: Clock, bgColor: 'bg-white', iconColor: 'text-[#0ea5e9]', iconBg: 'bg-[#e0faff]' },
-    { label: 'Substitute Teacher', count: substituteCount, icon: RefreshCw, bgColor: 'bg-white', iconColor: 'text-[#6366f1]', iconBg: 'bg-[#eef2ff]' },
+    { label: 'Active Teachers', count: activeCount, icon: Users, bgColor: 'bg-white', iconColor: 'text-emerald-500', iconBg: 'bg-emerald-50' },
+    { label: 'On Leave', count: leaveCount, icon: Clock, bgColor: 'bg-white', iconColor: 'text-amber-500', iconBg: 'bg-amber-50' },
+    { label: 'Inactive Teachers', count: inactiveCount, icon: RefreshCw, bgColor: 'bg-white', iconColor: 'text-gray-500', iconBg: 'bg-gray-50' },
   ];
 
   const departmentCounts = {};
@@ -580,11 +580,14 @@ const Teachers = () => {
                       {teacher.profile?.employment_status ? (() => {
                         const s = teacher.profile.employment_status;
                         const styles = {
-                          'full-time': 'bg-emerald-50 text-emerald-600 border-emerald-100',
-                          'part-time': 'bg-sky-50 text-sky-600 border-sky-100',
-                          'substitute': 'bg-violet-50 text-violet-600 border-violet-100',
+                          'Active': 'bg-emerald-50 text-emerald-600 border-emerald-100',
+                          'Leave': 'bg-amber-50 text-amber-600 border-amber-100',
+                          'Inactive': 'bg-gray-50 text-gray-600 border-gray-200',
+                          'full-time': 'bg-emerald-50 text-emerald-600 border-emerald-100', // legacy support
+                          'part-time': 'bg-sky-50 text-sky-600 border-sky-100', // legacy support
+                          'substitute': 'bg-violet-50 text-violet-600 border-violet-100', // legacy support
                         };
-                        const labels = { 'full-time': 'Full-Time', 'part-time': 'Part-Time', 'substitute': 'Substitute' };
+                        const labels = { 'Active': 'Active', 'Leave': 'On Leave', 'Inactive': 'Inactive', 'full-time': 'Full-Time', 'part-time': 'Part-Time', 'substitute': 'Substitute' };
                         return (
                           <span className={`text-[10px] font-extrabold uppercase tracking-wide px-2.5 py-1 rounded-full border shrink-0 ${styles[s] || 'bg-gray-50 text-gray-500 border-gray-100'}`}>
                             {labels[s] || s}

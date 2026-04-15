@@ -45,7 +45,8 @@ const AddTeacher = () => {
     specialization: '',
     medical_condition_alert: false,
     medical_condition_details: '',
-    status: 'active'
+    status: 'Active',
+    registration_status: 'completed'
   });
 
   const [emergencyContacts, setEmergencyContacts] = useState([
@@ -115,9 +116,16 @@ const AddTeacher = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async () => {
-    if (!validateForm()) {
+  const handleSubmit = async (isDraft = false) => {
+    // For drafts, we might only require name or email, but let's let standard validation run except if we want to skip it.
+    // Usually names are minimal requirement for a draft.
+    if (!isDraft && !validateForm()) {
       showToast('error', 'Please fill in all required fields');
+      return;
+    }
+    
+    if (isDraft && !formData.full_name.trim()) {
+      showToast('error', 'A full name is minimally required to save a draft.');
       return;
     }
 
@@ -129,13 +137,16 @@ const AddTeacher = () => {
       
       const body = new FormData();
       
+      const currentRegStatus = isDraft ? 'draft' : 'completed';
+
       // Append all form fields
       body.append('full_name', formData.full_name);
       body.append('email', formData.email);
-      body.append('gender', formData.gender.toLowerCase());
+      body.append('gender', formData.gender ? formData.gender.toLowerCase() : '');
       body.append('phone_country_code', formData.phone_country_code);
       body.append('phone', formData.phone);
       body.append('status', formData.status);
+      body.append('registration_status', currentRegStatus);
       body.append('department', formData.department);
       body.append('designation', formData.designation);
       body.append('joining_date', formData.joining_date);
@@ -529,9 +540,9 @@ const AddTeacher = () => {
                   value={formData.status}
                   onChange={(e) => handleChange('status', e.target.value)}
                 >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="on_leave">On Leave</option>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                  <option value="Leave">On Leave</option>
                 </select>
                 <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
@@ -661,7 +672,11 @@ const AddTeacher = () => {
       {/* Footer Area */}
       <footer className="mt-12 pt-12 border-t border-gray-100 px-8 flex flex-col gap-10">
         <div className="flex items-center justify-between">
-          <button className="text-[13px] font-extrabold text-sky-600 hover:text-sky-700 underline underline-offset-4 decoration-sky-200 transition-colors">
+          <button 
+            onClick={() => handleSubmit(true)}
+            disabled={isSubmitting}
+            className="text-[13px] font-extrabold text-sky-600 hover:text-sky-700 underline underline-offset-4 decoration-sky-200 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          >
             Save as Draft
           </button>
           
@@ -673,7 +688,7 @@ const AddTeacher = () => {
               Cancel
             </Link>
             <button 
-              onClick={handleSubmit}
+              onClick={() => handleSubmit(false)}
               disabled={isSubmitting}
               className="px-8 py-3.5 bg-primary-pink text-white rounded-[18px] text-[14px] font-extrabold hover:brightness-105 transition-all active:scale-95 shadow-lg shadow-primary-pink/20 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
             >

@@ -141,7 +141,8 @@ const TeacherDetails = () => {
                 address: foundProfile.profile?.address || '',
                 teacher_id: foundProfile.teacher_id,
                 employee_id: foundProfile.employee_id,
-                status: foundProfile.profile?.employment_status === 'full-time' ? 'active' : 'inactive',
+                status: foundProfile.profile?.employment_status === 'full-time' ? 'Active' : 'Inactive',
+                registration_status: foundProfile.registration_status || 'completed',
                 created_at: foundProfile.created_at,
                 updated_at: foundProfile.updated_at,
                 profile_photo: null, 
@@ -232,48 +233,47 @@ const TeacherDetails = () => {
     setIsSaving(true);
     try {
       const token = localStorage.getItem('token');
-      const body = new FormData();
       
-      // We use POST with _method = PUT to allow multipart/form-data upload via Laravel
-      body.append('_method', 'PUT');
-      
-      const fields = [
-        'full_name', 'email', 'gender', 'phone_country_code', 'phone', 'address',
-        'department', 'designation', 'joining_date', 'qualification', 'specialization',
-        'status', 'date_of_birth'
-      ];
+      const payload = {
+        status: editData.status || 'Active',
+        registration_status: editData.registration_status || teacher.registration_status || 'completed',
+        full_name: editData.full_name || '',
+        email: editData.email || '',
+        gender: editData.gender || '',
+        date_of_birth: editData.date_of_birth || null,
+        phone: editData.phone || '',
+        phone_country_code: editData.phone_country_code || '+233',
+        address: editData.address || '',
+        department: editData.department || '',
+        designation: editData.designation || '',
+        joining_date: editData.joining_date || null,
+        qualification: editData.qualification || '',
+        specialization: editData.specialization || '',
+        medical_condition_alert: editData.medical_condition_alert ? true : false,
+        medical_condition_details: editData.medical_condition_details || null,
+      };
 
-      fields.forEach(f => {
-        if (editData[f] !== undefined && editData[f] !== null) {
-          body.append(f, editData[f]);
+      if (editData.emergency_contacts && editData.emergency_contacts.length > 0) {
+        const ec = editData.emergency_contacts[0];
+        if (ec.name?.trim()) {
+          payload.emergency_contact = {
+            name: ec.name,
+            relation: ec.relation || '',
+            phone: ec.phone || '',
+            phone_country_code: ec.phone_country_code || '+233'
+          };
         }
-      });
-      
-      body.append('medical_condition_alert', editData.medical_condition_alert ? '1' : '0');
-      if (editData.medical_condition_alert && editData.medical_condition_details) {
-        body.append('medical_condition_details', editData.medical_condition_details);
       }
 
-      if (selectedPhoto) {
-        body.append('profile_photo', selectedPhoto);
-      }
-
-      (editData.emergency_contacts || []).forEach((contact, index) => {
-        if (contact.name?.trim()) {
-          body.append(`emergency_contacts[${index}][name]`, contact.name);
-          body.append(`emergency_contacts[${index}][relation]`, contact.relation);
-          body.append(`emergency_contacts[${index}][phone_country_code]`, contact.phone_country_code || '+233');
-          body.append(`emergency_contacts[${index}][phone]`, contact.phone);
-        }
-      });
-
+      // Important: Use PUT method with application/json
       const response = await fetch(`${API_BASE}/teachers/${teacher.id}`, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body
+        body: JSON.stringify(payload)
       });
 
       const data = await response.json();
@@ -295,15 +295,18 @@ const TeacherDetails = () => {
 
   const getStatusStyle = (status) => {
     const styles = {
-      'active': 'bg-emerald-50 text-emerald-600 border-emerald-200',
-      'inactive': 'bg-gray-100 text-gray-500 border-gray-200',
-      'on_leave': 'bg-amber-50 text-amber-600 border-amber-200',
+      'Active': 'bg-emerald-50 text-emerald-600 border-emerald-200',
+      'Inactive': 'bg-gray-100 text-gray-500 border-gray-200',
+      'Leave': 'bg-amber-50 text-amber-600 border-amber-200',
+      'active': 'bg-emerald-50 text-emerald-600 border-emerald-200', // fallback
+      'inactive': 'bg-gray-100 text-gray-500 border-gray-200', // fallback
+      'on_leave': 'bg-amber-50 text-amber-600 border-amber-200', // fallback
     };
     return styles[status] || 'bg-gray-50 text-gray-500 border-gray-200';
   };
 
   const getStatusLabel = (status) => {
-    const labels = { 'active': 'Active', 'inactive': 'Inactive', 'on_leave': 'On Leave' };
+    const labels = { 'Active': 'Active', 'Inactive': 'Inactive', 'Leave': 'On Leave', 'active': 'Active', 'inactive': 'Inactive', 'on_leave': 'On Leave' };
     return labels[status] || status || 'Unknown';
   };
 
@@ -447,7 +450,7 @@ const TeacherDetails = () => {
               )}
             </div>
             {!isEditing && (
-              <div className={`absolute -bottom-1 -right-1 w-8 h-8 rounded-full border-4 border-white shadow-sm ${t.status === 'active' ? 'bg-emerald-400' : t.status === 'on_leave' ? 'bg-amber-400' : 'bg-gray-300'}`}></div>
+              <div className={`absolute -bottom-1 -right-1 w-8 h-8 rounded-full border-4 border-white shadow-sm ${t.status === 'Active' || t.status === 'active' ? 'bg-emerald-400' : t.status === 'Leave' || t.status === 'on_leave' ? 'bg-amber-400' : 'bg-gray-300'}`}></div>
             )}
             <input type="file" ref={fileInputRef} onChange={handlePhotoChange} accept="image/jpeg,image/png,image/jpg" className="hidden" />
             
@@ -458,9 +461,9 @@ const TeacherDetails = () => {
                   onChange={(e) => handleChange('status', e.target.value)}
                   className={`text-[11px] font-extrabold uppercase tracking-wide px-3 py-1.5 rounded-full border focus:outline-none appearance-none text-center ${getStatusStyle(t.status)}`}
                 >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="on_leave">On Leave</option>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                  <option value="Leave">On Leave</option>
                 </select>
               </div>
             )}
