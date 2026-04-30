@@ -361,11 +361,18 @@ const TeacherDetails = () => {
   const t = isEditing ? editData : teacher;
   const originalT = teacher;
   
-  const profilePhotoUrl = photoPreview || (originalT.profile_photo
-    ? `${API_BASE.replace('/api', '')}/storage/${originalT.profile_photo}`
-    : originalT._legacy_profile_picture_url
-      ? originalT._legacy_profile_picture_url
-      : `https://ui-avatars.com/api/?name=${encodeURIComponent(originalT.full_name || 'Teacher')}&background=random&size=200`);
+  const profilePhotoUrl = photoPreview || (() => {
+    // Check if there is a valid path in profile_photo
+    if (originalT.profile_photo && originalT.profile_photo !== 'null' && originalT.profile_photo !== 'undefined') {
+      return `${API_BASE.replace('/api', '')}/storage/${originalT.profile_photo}`;
+    }
+    // Check if there is a valid fallback URL in legacy profile picture
+    if (originalT._legacy_profile_picture_url && originalT._legacy_profile_picture_url !== 'null' && originalT._legacy_profile_picture_url !== 'undefined') {
+      return originalT._legacy_profile_picture_url;
+    }
+    // Final fallback to UI Avatar initials
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(originalT.full_name || 'Teacher')}&background=0ea5e9&color=fff&size=200&font-size=0.33&bold=true`;
+  })();
 
   return (
     <div className="flex flex-col gap-8 py-8 animate-in fade-in duration-500 overflow-x-hidden pb-16 relative">
@@ -450,6 +457,10 @@ const TeacherDetails = () => {
                 src={profilePhotoUrl}
                 alt={t.full_name}
                 className={`w-full h-full rounded-[22px] object-cover transition-all ${isEditing ? 'group-hover:blur-sm' : ''}`}
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(t.full_name || 'Teacher')}&background=0ea5e9&color=fff&size=200&font-size=0.33&bold=true`;
+                }}
               />
               {isEditing && (
                 <div className="absolute inset-0 bg-black/40 rounded-[22px] m-1 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity">

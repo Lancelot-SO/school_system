@@ -564,7 +564,15 @@ const Teachers = () => {
                     </td>
                     <td className="py-4 pl-4">
                       <div className="flex items-center gap-4">
-                        <img src={teacher.profile_picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(teacher.name)}&background=random`} alt={teacher.name} className="w-10 h-10 rounded-[14px] object-cover border border-gray-100 shadow-sm" />
+                        <img 
+                          src={teacher.profile_picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(teacher.name)}&background=0ea5e9&color=fff&size=200&font-size=0.33&bold=true`} 
+                          alt={teacher.name} 
+                          className="w-10 h-10 rounded-[14px] object-cover border border-gray-100 shadow-sm"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(teacher.name || 'T')}&background=0ea5e9&color=fff&size=200&font-size=0.33&bold=true`;
+                          }}
+                        />
                         <div>
                           <p className="text-[14px] font-extrabold text-primary-blue leading-tight group-hover:text-sky-600 transition-colors">{teacher.name}</p>
                           <p className="text-[11px] font-bold text-gray-400 mt-0.5">{teacher.email}</p>
@@ -722,7 +730,15 @@ const Teachers = () => {
             <div className="flex flex-col items-center text-center mb-6 mt-4">
               <div className="relative mb-5">
                 <div className="w-24 h-24 rounded-full border-4 border-gray-50 p-1">
-                  <img src={selectedTeacher.profile_picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedTeacher.name || selectedTeacher.full_name || 'T')}&background=random`} alt={selectedTeacher.name} className="w-full h-full rounded-full object-cover" />
+                  <img 
+                    src={selectedTeacher.profile_picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedTeacher.name || selectedTeacher.full_name || 'T')}&background=0ea5e9&color=fff&size=200&font-size=0.33&bold=true`} 
+                    alt={selectedTeacher.name} 
+                    className="w-full h-full rounded-full object-cover"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedTeacher.name || selectedTeacher.full_name || 'T')}&background=0ea5e9&color=fff&size=200&font-size=0.33&bold=true`;
+                    }}
+                  />
                 </div>
                 <div className="absolute bottom-0 right-0 w-6 h-6 bg-green-500 border-3 border-white rounded-full"></div>
               </div>
